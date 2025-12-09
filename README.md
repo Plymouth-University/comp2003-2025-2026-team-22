@@ -22,7 +22,7 @@ This project is being developed as part of the Year 2 Group Project COMP2003 mod
 = Clean, accessible UI based on user research
 
 # Tech Stack:
-= Frontend: Android Studio (Java)
+= Frontend: Android Studio (Java)\n
 = Backend: Firebase (free tier)
 = Design: Figma
 = Version Control: Git & GitHub
