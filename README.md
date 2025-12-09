@@ -3,26 +3,26 @@
 # COMP2003-2023
 Use this folder structure for your git repository. You may add additional folders as you see fit, but these basic folders provide the fundamental organization for evidences that need to be collected throughout the semester, so upload/commit them periodically.
 
-=================================================================================================
+===================================================================
 # COMP2003 - Team 22
 
 FlatFlex is a mobile application designed to help university students living in shared accommodation organise household chores more fairly and efficiently. The app allows housemates to create tasks, automatically rotate them, track progress, and receive reminders, all with the aim of reducing conflict and keeping shared spaces clean and manageable.
 
 This project is being developed as part of the Year 2 Group Project COMP2003 module, and focuses on delivering a functional Android prototype using free and open-source tools.
 
-=================================================================================================
+====================================================================
 # Planned Features for Prototype:
-= Add and design shared household chores
-= Automatic rotation of tasks
-= Task completion tracking
-= Simple task swapping between users
-= Notifications/reminders
-= Secure authentication and data storage
-= Basic gamificaiton (e.g., badges/rewards, leaderboard)
-= Clean, accessible UI based on user research
+= Add and design shared household chores <br>
+= Automatic rotation of tasks <br>
+= Task completion tracking <br>
+= Simple task swapping between users <br>
+= Notifications/reminders <br>
+= Secure authentication and data storage <br>
+= Basic gamificaiton (e.g., badges/rewards, leaderboard) <br>
+= Clean, accessible UI based on user research <br>
 
 # Tech Stack:
-= Frontend: Android Studio (Java)\n
+= Frontend: Android Studio (Java)
 = Backend: Firebase (free tier)
 = Design: Figma
 = Version Control: Git & GitHub
