@@ -9,22 +9,21 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Complete Chore"
+        android:text="Rotate Chores"
         android:textSize="24sp"
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/choreInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="Chore info"
+        android:text="This page would rotate chore assignments between users."
         android:textSize="16sp" />
 
     <Button
-        android:id="@+id/btnConfirmComplete"
+        android:id="@+id/btnDoRotate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Confirm complete" />
+        android:text="Rotate Now (demo)" />
 </LinearLayout>

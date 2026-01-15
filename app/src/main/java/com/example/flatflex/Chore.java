@@ -1,9 +1,9 @@
-package com.yourpackage.flatflex;
+package com.example.flatflex;
 
 public class Chore {
     public String id;
     public String title;
-    public String assignedTo; // username
+    public String assignedTo;
     public boolean completed;
 
     public Chore(String id, String title, String assignedTo, boolean completed) {

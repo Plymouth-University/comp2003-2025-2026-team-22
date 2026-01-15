@@ -9,18 +9,37 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FlatFlex">
+        android:theme="@style/Theme.FlatFlex"
+        >
 
         <!-- Main app container (Home / Leaderboard / Settings) -->
         <activity
-            android:name=".MainActivity"
+            android:name="MainActivity"
             android:exported="false" />
+
+        <activity
+            android:name="MarkChoreCompleteActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".AddChoreActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".RotateChoresActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".SwapChoresActivity"
+            android:exported="false" />
+
+
 
         <!-- Login screen is now the first screen (launcher) -->
         <activity
-            android:name=".LoginActivity"
+            android:name="LoginActivity"
             android:exported="true">
-            <intent-filter>
+            <intent-filter>z
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

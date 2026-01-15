@@ -11,7 +11,7 @@ public class MarkChoreCompleteActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.mark_chore_complete); // ✅ matches mark_chore_complete.xml
+        setContentView(R.layout.mark_chore_complete);
 
         String choreId = getIntent().getStringExtra("CHORE_ID");
 

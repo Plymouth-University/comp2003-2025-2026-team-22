@@ -1,4 +1,4 @@
-package com.yourpackage.flatflex;
+package com.example.flatflex;
 
 import android.content.Context;
 import android.content.Intent;
