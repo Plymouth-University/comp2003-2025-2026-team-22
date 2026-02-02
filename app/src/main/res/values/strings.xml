@@ -9,4 +9,8 @@
     <string name="login">Login</string>
     <string name="sign_up">Sign Up</string>
 
+    <!-- Bottom navigation -->
+    <string name="home">Home</string>
+    <string name="logout">Logout</string>
+
 </resources>

@@ -14,11 +14,11 @@
 
         <!-- Main app container (Home / Leaderboard / Settings) -->
         <activity
-            android:name="MainActivity"
+            android:name=".MainActivity"
             android:exported="false" />
 
         <activity
-            android:name="MarkChoreCompleteActivity"
+            android:name=".MarkChoreCompleteActivity"
             android:exported="false" />
 
         <activity
@@ -37,9 +37,9 @@
 
         <!-- Login screen is now the first screen (launcher) -->
         <activity
-            android:name="LoginActivity"
+            android:name=".LoginActivity"
             android:exported="true">
-            <intent-filter>z
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
