@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "485643541633",
+    "project_id": "flatflex-a8d8c",
+    "storage_bucket": "flatflex-a8d8c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:485643541633:android:d298b253663e1cc8554180",
+        "android_client_info": {
+          "package_name": "com.example.flatflex"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZsSN22UjYrNQ-9v5NBuDzhes39Zw4H7k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
