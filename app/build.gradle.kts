@@ -5,9 +5,9 @@ plugins {
 
 android {
     namespace = "com.example.flatflex"
-    compileSdk {
-        version = release(36)
-    }
+    // Compile against the API level required by your dependencies.
+    // (Some recent AndroidX libraries now require API 36+ for compilation.)
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.flatflex"
@@ -30,8 +30,9 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        // AGP 8+ runs Gradle on JDK 17+, so keeping source/target at 17 avoids toolchain mismatches.
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 

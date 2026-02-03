@@ -31,6 +31,14 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
 
+            if (id == R.id.nav_settings) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, new SettingsFragment())
+                        .commit();
+                return true;
+            }
+
             if (id == R.id.nav_logout) {
                 auth.signOut();
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);

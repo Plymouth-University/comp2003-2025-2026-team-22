@@ -37,6 +37,10 @@
 
         <!-- Login screen is now the first screen (launcher) -->
         <activity
+            android:name=".SignupActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>

@@ -2,13 +2,18 @@ package com.example.flatflex;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class HomeFragment extends Fragment {
 
@@ -21,6 +26,20 @@ public class HomeFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_home, container, false);
+
+        // Show who is signed in
+        TextView currentUserText = v.findViewById(R.id.currentUserText);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUserText != null && user != null) {
+            String name = user.getDisplayName();
+            if (!TextUtils.isEmpty(name)) {
+                currentUserText.setText("Signed in as: " + name);
+            } else if (!TextUtils.isEmpty(user.getEmail())) {
+                currentUserText.setText("Signed in as: " + user.getEmail());
+            } else {
+                currentUserText.setText("Signed in as: ");
+            }
+        }
 
         // Add Chore button -> opens AddChoreActivity
         View addBtn = v.findViewById(R.id.btnAddChore);

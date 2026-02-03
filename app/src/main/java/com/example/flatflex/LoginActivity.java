@@ -70,12 +70,9 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         // SIGNUP
-        // If you add a SignupActivity later, point to it here.
-        signupButton.setOnClickListener(v -> Toast.makeText(
-                LoginActivity.this,
-                "Signup not implemented yet",
-                Toast.LENGTH_SHORT
-        ).show());
+        signupButton.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, SignupActivity.class));
+        });
 
         // FORGOT PASSWORD
         forgotPassword.setOnClickListener(v -> {
