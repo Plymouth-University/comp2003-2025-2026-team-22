@@ -15,7 +15,7 @@
             android:id="@+id/homeTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="FlatFlex Home"
+            android:text="Dashboard"
             android:textSize="26sp"
             android:textStyle="bold" />
 
@@ -27,46 +27,111 @@
             android:text="Signed in as:"
             android:textSize="14sp" />
 
+        <!-- Household card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:padding="14dp"
+            android:orientation="vertical"
+            android:background="#FFFFFF">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Household"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/flatNameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Flat: (not set)"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/joinCodeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Join code: (not set)"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Today snapshot -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:orientation="vertical">
+            android:padding="14dp"
+            android:orientation="vertical"
+            android:background="#FFFFFF">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/todayDueText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Due today: -"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/overdueText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Overdue: -"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/completedWeekText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Completed this week: -"
+                android:textSize="14sp" />
 
             <Button
-                android:id="@+id/btnAddChore"
+                android:id="@+id/btnGoToChores"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Add New Chore" />
-
-            <Button
-                android:id="@+id/btnRotateChores"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Rotate Chores" />
-
-            <Button
-                android:id="@+id/btnSwapChores"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Swap Chores" />
+                android:layout_marginTop="12dp"
+                android:text="Open Chores" />
         </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Assigned chores"
-            android:textStyle="bold"
-            android:textSize="18sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/choresRecycler"
+        <!-- Upcoming preview (UI-only placeholder) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
+            android:layout_marginTop="12dp"
+            android:padding="14dp"
+            android:orientation="vertical"
+            android:background="#FFFFFF">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upcoming"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Next chores will appear here once the chore list is wired up."
+                android:textSize="14sp"
+                android:textColor="#666666" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

@@ -14,11 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Signup screen using Firebase Authentication (Email/Password).
@@ -99,28 +94,6 @@ public class SignupActivity extends AppCompatActivity {
 
                         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
                         prefs.edit().putLong(KEY_LAST_LOGIN_MS, System.currentTimeMillis()).apply();
-
-                        
-// Create / update Firestore user profile
-FirebaseFirestore db = FirebaseFirestore.getInstance();
-String uid = (auth.getCurrentUser() != null) ? auth.getCurrentUser().getUid() : null;
-if (uid != null) {
-    Map<String, Object> userDoc = new HashMap<>();
-    userDoc.put("name", name);
-    userDoc.put("email", email);
-    userDoc.put("flatName", "");
-    userDoc.put("joinCode", "");
-    userDoc.put("role", "tenant");
-    userDoc.put("createdAt", FieldValue.serverTimestamp());
-
-    db.collection("users").document(uid)
-            .set(userDoc)
-            .addOnFailureListener(err -> Toast.makeText(
-                    SignupActivity.this,
-                    "Failed to save profile: " + err.getMessage(),
-                    Toast.LENGTH_LONG
-            ).show());
-}
 
                         // Account created and signed in
                         Intent intent = new Intent(SignupActivity.this, MainActivity.class);

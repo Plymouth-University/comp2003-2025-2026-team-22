@@ -42,13 +42,9 @@ android {
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
 
     // If you added WorkManager / Biometrics in settings:
     implementation("androidx.work:work-runtime:2.9.0")
-    // WorkManager's ListenableWorker API references Guava's ListenableFuture.
-    // Include the Android-optimized Guava artifact to ensure ListenableFuture is present.
-    implementation("com.google.guava:guava:33.0.0-android")
     implementation("androidx.biometric:biometric:1.1.0")
 
     implementation(libs.appcompat)

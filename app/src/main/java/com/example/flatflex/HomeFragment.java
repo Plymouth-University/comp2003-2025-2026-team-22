@@ -1,6 +1,5 @@
 package com.example.flatflex;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -12,11 +11,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomeFragment extends Fragment {
+
+    private static final String PREFS = "flatflex_prefs";
+    private static final String KEY_FLAT_NAME = "flat_name";
+    private static final String KEY_JOIN_CODE = "join_code";
 
     public HomeFragment() { }
 
@@ -28,50 +31,44 @@ public class HomeFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Show who is signed in (Firestore preferred, falls back to Firebase Auth)
-TextView currentUserText = v.findViewById(R.id.currentUserText);
-FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-if (currentUserText != null && user != null) {
-    // Quick fallback while Firestore loads
-    String fallback = !TextUtils.isEmpty(user.getDisplayName()) ? user.getDisplayName()
-            : (!TextUtils.isEmpty(user.getEmail()) ? user.getEmail() : "");
-    currentUserText.setText("Signed in as: " + fallback);
+        // Signed-in label
+        TextView currentUserText = v.findViewById(R.id.currentUserText);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUserText != null && user != null) {
+            String name = user.getDisplayName();
+            if (!TextUtils.isEmpty(name)) {
+                currentUserText.setText("Signed in as: " + name);
+            } else if (!TextUtils.isEmpty(user.getEmail())) {
+                currentUserText.setText("Signed in as: " + user.getEmail());
+            } else {
+                currentUserText.setText("Signed in as: ");
+            }
+        }
 
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    db.collection("users").document(user.getUid())
-            .get()
-            .addOnSuccessListener(doc -> {
-                if (doc != null && doc.exists()) {
-                    String name = doc.getString("name");
-                    if (!TextUtils.isEmpty(name)) {
-                        currentUserText.setText("Signed in as: " + name);
-                    }
+        // Household info (from prefs, set in Settings)
+        TextView flatNameText = v.findViewById(R.id.flatNameText);
+        TextView joinCodeText = v.findViewById(R.id.joinCodeText);
+
+        String flatName = requireContext().getSharedPreferences(PREFS, 0).getString(KEY_FLAT_NAME, "");
+        String joinCode = requireContext().getSharedPreferences(PREFS, 0).getString(KEY_JOIN_CODE, "");
+
+        if (flatNameText != null) {
+            flatNameText.setText(TextUtils.isEmpty(flatName) ? "Flat: (not set)" : "Flat: " + flatName);
+        }
+        if (joinCodeText != null) {
+            joinCodeText.setText(TextUtils.isEmpty(joinCode) ? "Join code: (not set)" : "Join code: " + joinCode);
+        }
+
+        // "Open Chores" button switches bottom nav to Chores tab
+        View goToChores = v.findViewById(R.id.btnGoToChores);
+        if (goToChores != null) {
+            goToChores.setOnClickListener(view -> {
+                if (getActivity() == null) return;
+                BottomNavigationView bottomNav = getActivity().findViewById(R.id.bottomNav);
+                if (bottomNav != null) {
+                    bottomNav.setSelectedItemId(R.id.nav_chores);
                 }
             });
-}
-
-// Add Chore button -> opens AddChoreActivity
-        View addBtn = v.findViewById(R.id.btnAddChore);
-        if (addBtn != null) {
-            addBtn.setOnClickListener(view ->
-                    startActivity(new Intent(requireContext(), AddChoreActivity.class))
-            );
-        }
-
-        // Rotate Chores button -> opens RotateChoresActivity
-        View rotateBtn = v.findViewById(R.id.btnRotateChores);
-        if (rotateBtn != null) {
-            rotateBtn.setOnClickListener(view ->
-                    startActivity(new Intent(requireContext(), RotateChoresActivity.class))
-            );
-        }
-
-        // Swap Chores button -> opens SwapChoresActivity
-        View swapBtn = v.findViewById(R.id.btnSwapChores);
-        if (swapBtn != null) {
-            swapBtn.setOnClickListener(view ->
-                    startActivity(new Intent(requireContext(), SwapChoresActivity.class))
-            );
         }
 
         return v;

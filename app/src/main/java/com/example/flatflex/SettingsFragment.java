@@ -35,11 +35,6 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -96,74 +91,18 @@ public class SettingsFragment extends Fragment {
             }
         }
 
-        
-// Load profile from Firestore (keeps app data in sync across devices)
-if (user != null) {
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    String uid = user.getUid();
-    db.collection("users").document(uid)
-            .get()
-            .addOnSuccessListener(doc -> {
-                if (doc != null && doc.exists()) {
-                    String n = doc.getString("name");
-                    String flat = doc.getString("flatName");
-                    String code = doc.getString("joinCode");
-
-                    if (!TextUtils.isEmpty(n)) {
-                        nameInput.setText(n);
-                    }
-                    if (!TextUtils.isEmpty(flat)) {
-                        flatNameInput.setText(flat);
-                        prefs.edit().putString(KEY_FLAT_NAME, flat).apply();
-                    }
-                    if (!TextUtils.isEmpty(code)) {
-                        joinCodeText.setText(code);
-                        prefs.edit().putString(KEY_JOIN_CODE, code).apply();
-                    }
-                } else {
-                    // First time after upgrade: create doc from what we already know
-                    Map<String, Object> seed = new HashMap<>();
-                    String display = user.getDisplayName();
-                    seed.put("name", TextUtils.isEmpty(display) ? "" : display);
-                    seed.put("email", user.getEmail() == null ? "" : user.getEmail());
-                    seed.put("flatName", prefs.getString(KEY_FLAT_NAME, ""));
-                    seed.put("joinCode", prefs.getString(KEY_JOIN_CODE, ""));
-                    seed.put("role", "tenant");
-                    seed.put("createdAt", FieldValue.serverTimestamp());
-                    db.collection("users").document(uid).set(seed);
-                }
-            });
-}
-saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
+        saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
         saveFlatButton.setOnClickListener(view -> {
             String flatName = flatNameInput.getText().toString().trim();
             prefs.edit().putString(KEY_FLAT_NAME, flatName).apply();
-            // Sync to Firestore so it persists across devices
-FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
-if (u != null) {
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    Map<String, Object> updates = new HashMap<>();
-    updates.put("flatName", flatName);
-    db.collection("users").document(u.getUid())
-            .set(updates, com.google.firebase.firestore.SetOptions.merge());
-}
-Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
         });
 
         generateJoinCodeButton.setOnClickListener(view -> {
             String code = generateJoinCode();
             prefs.edit().putString(KEY_JOIN_CODE, code).apply();
             joinCodeText.setText(code);
-            // Sync to Firestore
-FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
-if (u != null) {
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    Map<String, Object> updates = new HashMap<>();
-    updates.put("joinCode", code);
-    db.collection("users").document(u.getUid())
-            .set(updates, com.google.firebase.firestore.SetOptions.merge());
-}
-Toast.makeText(requireContext(), "Join code generated", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Join code generated", Toast.LENGTH_SHORT).show();
         });
 
         copyJoinCodeButton.setOnClickListener(view -> {
@@ -343,16 +282,7 @@ Toast.makeText(requireContext(), "Join code generated", Toast.LENGTH_SHORT).show
                 .build();
 
         u.updateProfile(req)
-                .addOnSuccessListener(unused -> {
-                    // Keep Firestore profile in sync
-                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("name", newName);
-                    db.collection("users").document(u.getUid())
-                            .set(updates, com.google.firebase.firestore.SetOptions.merge());
-
-                    Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show();
-                })
+                .addOnSuccessListener(unused -> Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show());
     }
 

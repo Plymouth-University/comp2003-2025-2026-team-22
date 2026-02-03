@@ -50,6 +50,14 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
 
+            if (id == R.id.nav_chores) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, new ChoresFragment())
+                        .commit();
+                return true;
+            }
+
             if (id == R.id.nav_settings) {
                 getSupportFragmentManager()
                         .beginTransaction()
@@ -61,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        // Load HomeFragment into the container
+// Load HomeFragment into the container
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()

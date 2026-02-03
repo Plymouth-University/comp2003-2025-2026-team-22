@@ -11,6 +11,7 @@
 
     <!-- Bottom navigation -->
     <string name="home">Home</string>
+    <string name="chores">Chores</string>
     <string name="logout">Logout</string>
 
     <string name="confirm_password">Confirm Password</string>
