@@ -2,6 +2,7 @@ package com.example.flatflex;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +18,9 @@ import com.google.firebase.auth.FirebaseAuth;
  * Layout: res/layout/loginactivity.xml
  */
 public class LoginActivity extends AppCompatActivity {
+
+    private static final String PREFS = "flatflex_prefs";
+    private static final String KEY_LAST_LOGIN_MS = "last_login_ms";
 
     private FirebaseAuth auth;
     private EditText emailInput;
@@ -57,6 +61,8 @@ public class LoginActivity extends AppCompatActivity {
 
             auth.signInWithEmailAndPassword(email, password)
                     .addOnSuccessListener(result -> {
+                        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+                        prefs.edit().putLong(KEY_LAST_LOGIN_MS, System.currentTimeMillis()).apply();
                         // MainActivity loads HomeFragment by default
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
