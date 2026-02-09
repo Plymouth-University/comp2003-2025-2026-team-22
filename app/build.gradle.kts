@@ -42,9 +42,11 @@ android {
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 
-    // If you added WorkManager / Biometrics in settings:
     implementation("androidx.work:work-runtime:2.9.0")
+    implementation("com.google.guava:guava:32.1.3-android")
+
     implementation("androidx.biometric:biometric:1.1.0")
 
     implementation(libs.appcompat)

@@ -11,6 +11,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Title -->
         <TextView
             android:id="@+id/choresTitle"
             android:layout_width="wrap_content"
@@ -19,53 +20,38 @@
             android:textSize="26sp"
             android:textStyle="bold" />
 
+        <!-- Actions header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="10dp"
             android:text="Actions"
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <LinearLayout
+        <!-- Suggested chores toggle -->
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchPrepopulate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Enable suggested chores"
+            android:checked="true" />
+
+        <!-- Add chore button -->
+        <Button
+            android:id="@+id/btnAddChore"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:orientation="vertical">
+            android:text="Add New Chore" />
 
-            <Button
-                android:id="@+id/btnAddChore"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Add New Chore" />
-
-            <Button
-                android:id="@+id/btnRotateChores"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Rotate Chores" />
-
-            <Button
-                android:id="@+id/btnSwapChores"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Swap Chores" />
-
-            <Button
-                android:id="@+id/btnMarkComplete"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Mark Chore Complete" />
-        </LinearLayout>
-
+        <!-- Assigned chores section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:text="Assigned chores"
+            android:layout_marginTop="20dp"
+            android:text="Assigned Chores"
             android:textStyle="bold"
             android:textSize="18sp" />
 
@@ -73,15 +59,16 @@
             android:id="@+id/choresRecycler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
+            android:layout_marginTop="10dp"
+            android:nestedScrollingEnabled="false" />
 
         <TextView
             android:id="@+id/choresHint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="(Chore list UI will be wired to data next. For now this page hosts the chore actions.)"
-            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            android:text="No chores yet. Add one or enable suggested chores."
+            android:textSize="13sp"
             android:textColor="#666666" />
 
     </LinearLayout>

@@ -31,11 +31,26 @@
         android:text="Status: Pending"
         android:textSize="14sp" />
 
-    <Button
-        android:id="@+id/btnMarkComplete"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Mark complete" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnMarkComplete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Complete" />
+
+        <Button
+            android:id="@+id/btnOptions"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Options" />
+    </LinearLayout>
 
 </LinearLayout>
