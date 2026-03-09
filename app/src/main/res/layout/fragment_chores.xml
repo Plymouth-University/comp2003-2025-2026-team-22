@@ -39,7 +39,7 @@
             android:checked="true" />
 
         <!-- Add chore button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddChore"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -34,7 +34,7 @@
             android:hint="Assigned to (name)"
             android:padding="12dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveChore"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

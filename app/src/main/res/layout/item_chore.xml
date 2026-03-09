@@ -37,14 +37,14 @@
         android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMarkComplete"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Complete" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOptions"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

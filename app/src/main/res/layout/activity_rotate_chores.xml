@@ -20,7 +20,7 @@
         android:text="This page would rotate chore assignments between users."
         android:textSize="16sp" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDoRotate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

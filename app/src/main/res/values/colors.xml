@@ -1,5 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <!-- Primary palette -->
+    <color name="primary">#2A9D8F</color>
+    <color name="primaryContainer">#264653</color>
+
+    <!-- Secondary -->
+    <color name="secondary">#E9C46A</color>
+
+    <!-- Extra accents -->
+    <color name="accent_orange">#F4A261</color>
+    <color name="accent_red">#E76F51</color>
+
+    <!-- neutrals -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
 </resources>

@@ -36,7 +36,7 @@
             android:inputType="textPersonName"
             android:padding="12dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/saveProfileButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -60,7 +60,7 @@
             android:inputType="text"
             android:padding="12dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/saveFlatButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -88,14 +88,14 @@
             android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/generateJoinCodeButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Generate" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/copyJoinCodeButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -112,14 +112,14 @@
             android:text="Account"
             android:textStyle="bold" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/changePasswordButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Change password" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/changeEmailButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -146,7 +146,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/applyThemeButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -160,7 +160,7 @@
             android:layout_marginTop="12dp"
             android:text="Chore reminders" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/notificationTimeButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -186,7 +186,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/applyReloginButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -201,35 +201,35 @@
             android:text="Support"
             android:textStyle="bold" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/faqButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="FAQ" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/reportProblemButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Report a problem" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/termsButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Terms" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/privacyButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Privacy" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/aboutButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -244,21 +244,21 @@
             android:text="Data"
             android:textStyle="bold" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/exportButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Export settings (CSV)" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/clearCompletedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Clear completed chores" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/resetHintsButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -274,14 +274,14 @@
             android:textStyle="bold"
             android:textColor="#B00020" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/logoutButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/logout" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/deleteAccountButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

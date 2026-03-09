@@ -48,6 +48,7 @@ dependencies {
     implementation("com.google.guava:guava:32.1.3-android")
 
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("com.google.android.material:material:1.11.0")
 
     implementation(libs.appcompat)
     implementation(libs.material)
