@@ -5,15 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- SCROLLABLE SETTINGS CONTENT -->
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
         android:background="#F5F7FA"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -44,8 +42,7 @@
                     app:tint="@color/primary"/>
             </LinearLayout>
 
-
-            <!-- PROFILE CARD -->
+            <!-- PROFILE -->
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -61,17 +58,17 @@
                     android:padding="18dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="Profile"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
 
                     <EditText
                         android:id="@+id/nameInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="@string/name"/>
+                        android:hint="Name"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/saveProfileButton"
@@ -85,7 +82,7 @@
             </com.google.android.material.card.MaterialCardView>
 
 
-            <!-- HOUSEHOLD CARD -->
+            <!-- HOUSEHOLD -->
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -101,10 +98,10 @@
                     android:padding="18dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="Household"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
 
                     <EditText
                         android:id="@+id/flatNameInput"
@@ -121,11 +118,11 @@
                         android:layout_marginTop="8dp"/>
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="Invite / Join code"
                         android:textStyle="bold"
-                        android:layout_marginTop="12dp"/>
+                        android:layout_marginTop="12dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
 
                     <TextView
                         android:id="@+id/joinCodeText"
@@ -146,8 +143,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Generate"
-                            app:backgroundTint="@color/accent_orange"/>
+                            android:text="Generate"/>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/copyJoinCodeButton"
@@ -155,8 +151,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Copy"
-                            android:layout_marginStart="8dp"
-                            app:backgroundTint="@color/accent_orange"/>
+                            android:layout_marginStart="8dp"/>
 
                     </LinearLayout>
 
@@ -165,7 +160,7 @@
             </com.google.android.material.card.MaterialCardView>
 
 
-            <!-- ACCOUNT CARD -->
+            <!-- ACCOUNT -->
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -181,34 +176,159 @@
                     android:padding="18dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="Account"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
 
-                    <com.google.android.material.button.MaterialButton
+                    <Button
                         android:id="@+id/changePasswordButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Change password"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_marginTop="8dp"/>
 
-                    <com.google.android.material.button.MaterialButton
+                    <Button
                         android:id="@+id/changeEmailButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Change email"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_marginTop="8dp"/>
 
-                    <com.google.android.material.button.MaterialButton
+                    <Button
                         android:id="@+id/logoutButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/logout"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:text="Logout"
                         android:layout_marginTop="8dp"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- PREFERENCES -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:text="Preferences"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <Spinner
+                        android:id="@+id/themeSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <Button
+                        android:id="@+id/applyThemeButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Apply Theme"/>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/notificationsSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Enable reminders"/>
+
+                    <Button
+                        android:id="@+id/notificationTimeButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Reminder Time"/>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/biometricSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Use biometrics"/>
+
+                    <Spinner
+                        android:id="@+id/reloginSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <Button
+                        android:id="@+id/applyReloginButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Apply security"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- SUPPORT -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:text="Support"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <Button android:id="@+id/faqButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="FAQ"/>
+                    <Button android:id="@+id/reportProblemButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Report Problem"/>
+                    <Button android:id="@+id/termsButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Terms"/>
+                    <Button android:id="@+id/privacyButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Privacy"/>
+                    <Button android:id="@+id/aboutButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="About"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- DATA -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:text="Data"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <Button android:id="@+id/exportButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Export Settings"/>
+                    <Button android:id="@+id/clearCompletedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Clear Completed Chores"/>
+                    <Button android:id="@+id/resetHintsButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Reset Hints"/>
 
                 </LinearLayout>
 
@@ -231,28 +351,20 @@
                     android:padding="18dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="Danger Zone"
+                        android:textColor="#D32F2F"
                         android:textStyle="bold"
-                        android:textColor="@color/accent_red"/>
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Deleting your account will permanently remove your data."
-                        android:textSize="13sp"
-                        android:textColor="#777777"
-                        android:layout_marginTop="6dp"/>
-
-                    <com.google.android.material.button.MaterialButton
+                    <Button
                         android:id="@+id/deleteAccountButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Delete account"
-                        android:textColor="@android:color/white"
                         android:layout_marginTop="10dp"
-                        app:backgroundTint="@color/accent_red"/>
+                        android:backgroundTint="#D32F2F"
+                        android:textColor="@android:color/white"/>
 
                 </LinearLayout>
 
@@ -261,18 +373,5 @@
         </LinearLayout>
 
     </ScrollView>
-
-
-    <!-- BOTTOM NAVIGATION -->
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/primary"
-        app:itemTextColor="@color/primary"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:menu="@menu/bottom_nav_menu"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
