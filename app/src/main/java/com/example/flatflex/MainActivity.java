@@ -58,6 +58,14 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
 
+            if (id == R.id.nav_leaderboard) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, new LeaderboardFragment())
+                        .commit();
+                return true;
+            }
+
             if (id == R.id.nav_settings) {
                 getSupportFragmentManager()
                         .beginTransaction()
