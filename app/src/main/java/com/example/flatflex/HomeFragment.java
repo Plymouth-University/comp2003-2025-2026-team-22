@@ -14,6 +14,10 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
+import java.util.HashMap;
 
 public class HomeFragment extends Fragment {
 
@@ -49,14 +53,44 @@ public class HomeFragment extends Fragment {
         TextView flatNameText = v.findViewById(R.id.flatNameText);
         TextView joinCodeText = v.findViewById(R.id.joinCodeText);
 
-        String flatName = requireContext().getSharedPreferences(PREFS, 0).getString(KEY_FLAT_NAME, "");
-        String joinCode = requireContext().getSharedPreferences(PREFS, 0).getString(KEY_JOIN_CODE, "");
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            String userId = firebaseUser.getUid();
 
-        if (flatNameText != null) {
-            flatNameText.setText(TextUtils.isEmpty(flatName) ? "Flat: (not set)" : "Flat: " + flatName);
-        }
-        if (joinCodeText != null) {
-            joinCodeText.setText(TextUtils.isEmpty(joinCode) ? "Join code: (not set)" : "Join code: " + joinCode);
+            // STEP 1: Ensure user document exists
+            db.collection("users")
+                    .document(userId)
+                    .set(new HashMap<>(), SetOptions.merge());
+
+            // STEP 2: Now read user data
+            db.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener(userDoc -> {
+                        if (userDoc.exists()) {
+                            String flatId = userDoc.getString("flatId");
+
+                            if (flatId != null) {
+                                db.collection("flats")
+                                        .document(flatId)
+                                        .get()
+                                        .addOnSuccessListener(flatDoc -> {
+                                            if (flatDoc.exists()) {
+                                                String flatName = flatDoc.getString("name");
+                                                String joinCode = flatDoc.getString("joinCode");
+                                                if (flatNameText != null) {
+                                                    flatNameText.setText("Flat: " + flatName);
+                                                }
+
+                                                if (joinCodeText != null) {
+                                                    joinCodeText.setText("Join code: " + joinCode);
+                                                }
+                                            }
+                                        });
+                            }
+                        }
+                    });
         }
 
         // "Open Chores" button switches bottom nav to Chores tab
