@@ -81,7 +81,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-
             <!-- HOUSEHOLD -->
 
             <com.google.android.material.card.MaterialCardView
@@ -155,10 +154,26 @@
 
                     </LinearLayout>
 
+                    <!-- JOIN HOUSEHOLD -->
+
+                    <EditText
+                        android:id="@+id/joinCodeInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="Enter join code"
+                        android:inputType="text"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/joinFlatButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Join Household"
+                        android:layout_marginTop="8dp"/>
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
-
 
             <!-- ACCOUNT -->
 
@@ -205,7 +220,6 @@
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
-
 
             <!-- PREFERENCES -->
 
@@ -272,7 +286,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-
             <!-- SUPPORT -->
 
             <com.google.android.material.card.MaterialCardView
@@ -304,7 +317,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-
             <!-- DATA -->
 
             <com.google.android.material.card.MaterialCardView
@@ -333,7 +345,6 @@
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
-
 
             <!-- DANGER ZONE -->
 

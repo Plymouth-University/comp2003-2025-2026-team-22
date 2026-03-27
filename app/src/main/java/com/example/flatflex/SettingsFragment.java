@@ -83,8 +83,6 @@ public class SettingsFragment extends Fragment {
 
         // Prefill flat settings
         flatNameInput.setText(prefs.getString(KEY_FLAT_NAME, ""));
-        String existingCode = prefs.getString(KEY_JOIN_CODE, "");
-        joinCodeText.setText(TextUtils.isEmpty(existingCode) ? "Not set" : existingCode);
 
         // Prefill name from Firebase
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -99,12 +97,10 @@ public class SettingsFragment extends Fragment {
         saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
         saveFlatButton.setOnClickListener(view -> {
             String flatName = flatNameInput.getText().toString().trim();
-            prefs.edit().putString(KEY_FLAT_NAME, flatName).apply();
             Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
         });
 
         generateJoinCodeButton.setOnClickListener(view -> {
-
             String code = generateJoinCode();
             String flatName = flatNameInput.getText().toString().trim();
 
@@ -124,7 +120,6 @@ public class SettingsFragment extends Fragment {
             db.collection("flats")
                     .add(flat)
                     .addOnSuccessListener(doc -> {
-
                         String flatId = doc.getId();
 
                         // link user → flat
