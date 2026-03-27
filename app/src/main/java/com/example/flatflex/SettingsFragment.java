@@ -35,10 +35,13 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsFragment extends Fragment {
 
@@ -85,6 +88,8 @@ public class SettingsFragment extends Fragment {
 
         // Prefill name from Firebase
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String userId = user.getUid();
         if (user != null) {
             if (!TextUtils.isEmpty(user.getDisplayName())) {
                 nameInput.setText(user.getDisplayName());
@@ -99,10 +104,40 @@ public class SettingsFragment extends Fragment {
         });
 
         generateJoinCodeButton.setOnClickListener(view -> {
+
             String code = generateJoinCode();
-            prefs.edit().putString(KEY_JOIN_CODE, code).apply();
+            String flatName = flatNameInput.getText().toString().trim();
+
+            if (flatName.isEmpty()) {
+                Toast.makeText(requireContext(), "Enter a flat name", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // show code in UI
             joinCodeText.setText(code);
-            Toast.makeText(requireContext(), "Join code generated", Toast.LENGTH_SHORT).show();
+
+            // Add flat to firebase
+            Map<String, Object> flat = new HashMap<>();
+            flat.put("name", flatName);
+            flat.put("joinCode", code);
+
+            db.collection("flats")
+                    .add(flat)
+                    .addOnSuccessListener(doc -> {
+
+                        String flatId = doc.getId();
+
+                        // link user → flat
+                        db.collection("users")
+                                .document(userId)
+                                .update("flatId", flatId);
+
+                        Toast.makeText(requireContext(), "Flat created!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+
         });
 
         copyJoinCodeButton.setOnClickListener(view -> {
