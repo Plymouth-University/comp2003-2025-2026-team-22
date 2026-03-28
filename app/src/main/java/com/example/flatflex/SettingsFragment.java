@@ -36,8 +36,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
@@ -101,7 +103,7 @@ public class SettingsFragment extends Fragment {
         });
 
         generateJoinCodeButton.setOnClickListener(view -> {
-            String code = generateJoinCode();
+
             String flatName = flatNameInput.getText().toString().trim();
 
             if (flatName.isEmpty()) {
@@ -109,30 +111,40 @@ public class SettingsFragment extends Fragment {
                 return;
             }
 
-            // show code in UI
-            joinCodeText.setText(code);
+            // First check if user already has a flat
+            db.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener(userDoc -> {
+                        String existingFlatId = userDoc.getString("flatId");
 
-            // Add flat to firebase
-            Map<String, Object> flat = new HashMap<>();
-            flat.put("name", flatName);
-            flat.put("joinCode", code);
+                        // Stop if already part of a flat
+                        if (existingFlatId != null) {
+                            Toast.makeText(requireContext(), "You already have a household", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-            db.collection("flats")
-                    .add(flat)
-                    .addOnSuccessListener(doc -> {
-                        String flatId = doc.getId();
+                        // Otherwise, create new flat
+                        String code = generateJoinCode();
+                        joinCodeText.setText(code);
 
-                        // link user → flat
-                        db.collection("users")
-                                .document(userId)
-                                .update("flatId", flatId);
+                        Map<String, Object> flat = new HashMap<>();
+                        flat.put("name", flatName);
+                        flat.put("joinCode", code);
 
-                        Toast.makeText(requireContext(), "Flat created!", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        db.collection("flats")
+                                .add(flat)
+                                .addOnSuccessListener(doc -> {
+                                    String flatId = doc.getId();
+
+                                    // link user to flat
+                                    db.collection("users")
+                                            .document(userId)
+                                            .set(Collections.singletonMap("flatId", flatId), SetOptions.merge());
+
+                                    Toast.makeText(requireContext(), "Household created!", Toast.LENGTH_SHORT).show();
+                                });
                     });
-
         });
 
         copyJoinCodeButton.setOnClickListener(view -> {
