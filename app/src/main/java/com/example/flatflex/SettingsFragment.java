@@ -72,16 +72,22 @@ public class SettingsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_settings, container, false);
         prefs = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
-        // --- Profile ---
+        // Profile
         EditText nameInput = v.findViewById(R.id.nameInput);
         Button saveProfileButton = v.findViewById(R.id.saveProfileButton);
 
+        // Flat name
         EditText flatNameInput = v.findViewById(R.id.flatNameInput);
         Button saveFlatButton = v.findViewById(R.id.saveFlatButton);
 
+        // Join code
         TextView joinCodeText = v.findViewById(R.id.joinCodeText);
         Button generateJoinCodeButton = v.findViewById(R.id.generateJoinCodeButton);
         Button copyJoinCodeButton = v.findViewById(R.id.copyJoinCodeButton);
+
+        // Join household by code
+        EditText joinCodeInput = v.findViewById(R.id.joinCodeInput);
+        Button joinFlatButton = v.findViewById(R.id.joinFlatButton);
 
         // Prefill flat settings
         flatNameInput.setText(prefs.getString(KEY_FLAT_NAME, ""));
@@ -96,13 +102,14 @@ public class SettingsFragment extends Fragment {
             }
         }
 
+        // --- Profile ---
         saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
         saveFlatButton.setOnClickListener(view -> {
             String flatName = flatNameInput.getText().toString().trim();
             Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
         });
 
-        // 🔹 LOAD EXISTING HOUSEHOLD ON PAGE OPEN
+        // Load existing household on page open
         db.collection("users")
                 .document(userId)
                 .get()
@@ -121,7 +128,7 @@ public class SettingsFragment extends Fragment {
 
                                         String joinCode = flatDoc.getString("joinCode");
 
-                                        // ✅ Show join code
+                                        // Show join code
                                         if (joinCode != null) {
                                             joinCodeText.setText(joinCode);
                                         }
@@ -135,7 +142,7 @@ public class SettingsFragment extends Fragment {
                                 });
 
                     } else {
-                        // ✅ Reset UI if no flat
+                        // Reset UI if no flat
                         joinCodeText.setText("Not set");
                         generateJoinCodeButton.setEnabled(true);
                         generateJoinCodeButton.setAlpha(1f);
@@ -144,6 +151,7 @@ public class SettingsFragment extends Fragment {
 
                 });
 
+        // --- Join Code ---
         generateJoinCodeButton.setOnClickListener(view -> {
 
             String flatName = flatNameInput.getText().toString().trim();
@@ -217,6 +225,7 @@ public class SettingsFragment extends Fragment {
                     });
         });
 
+        // --- Copy Join Code ---
         copyJoinCodeButton.setOnClickListener(view -> {
             String code = joinCodeText.getText().toString();
 
@@ -228,6 +237,52 @@ public class SettingsFragment extends Fragment {
             ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
             clipboard.setPrimaryClip(ClipData.newPlainText("FlatFlex Join Code", code));
             Toast.makeText(requireContext(), "Copied to clipboard", Toast.LENGTH_SHORT).show();
+        });
+
+        // --- Join Flat by Code ---
+        joinFlatButton.setOnClickListener(view -> {
+
+            String code = joinCodeInput.getText().toString().trim();
+
+            if (code.isEmpty()) {
+                Toast.makeText(requireContext(), "Enter a join code", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Find flat with this code
+            db.collection("flats")
+                    .whereEqualTo("joinCode", code)
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+
+                        if (querySnapshot.isEmpty()) {
+                            Toast.makeText(requireContext(), "Invalid join code", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        // Get the first matching flat
+                        String flatId = querySnapshot.getDocuments().get(0).getId();
+
+                        // Link user to flat
+                        db.collection("users")
+                                .document(userId)
+                                .set(Collections.singletonMap("flatId", flatId), SetOptions.merge())
+                                .addOnSuccessListener(unused -> {
+
+                                    Toast.makeText(requireContext(), "Joined household!", Toast.LENGTH_SHORT).show();
+
+                                    // Update UI immediately
+                                    joinCodeText.setText(code);
+                                    generateJoinCodeButton.setEnabled(false);
+                                    generateJoinCodeButton.setText("Already in a household");
+                                    generateJoinCodeButton.setAlpha(0.5f);
+                                });
+
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+
         });
 
         // --- Account ---
