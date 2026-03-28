@@ -133,7 +133,7 @@ public class SettingsFragment extends Fragment {
                                             joinCodeText.setText(joinCode);
                                         }
 
-                                        // ✅ Disable button
+                                        // Disable button
                                         generateJoinCodeButton.setEnabled(false);
                                         generateJoinCodeButton.setText("Already in a household");
                                         generateJoinCodeButton.setAlpha(0.5f);
@@ -451,8 +451,24 @@ public class SettingsFragment extends Fragment {
                 .build();
 
         u.updateProfile(req)
-                .addOnSuccessListener(unused -> Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnSuccessListener(unused -> {
+
+                    // ✅ SAVE TO FIRESTORE
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+                    Map<String, Object> userData = new HashMap<>();
+                    userData.put("name", newName);
+                    userData.put("email", u.getEmail());
+
+                    db.collection("users")
+                            .document(u.getUid())
+                            .set(userData, SetOptions.merge());
+
+                    Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show()
+                );
     }
 
     private void sendPasswordReset() {
