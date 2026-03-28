@@ -102,6 +102,48 @@ public class SettingsFragment extends Fragment {
             Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
         });
 
+        // 🔹 LOAD EXISTING HOUSEHOLD ON PAGE OPEN
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+
+                    if (flatId != null) {
+
+                        db.collection("flats")
+                                .document(flatId)
+                                .get()
+                                .addOnSuccessListener(flatDoc -> {
+
+                                    if (flatDoc.exists()) {
+
+                                        String joinCode = flatDoc.getString("joinCode");
+
+                                        // ✅ Show join code
+                                        if (joinCode != null) {
+                                            joinCodeText.setText(joinCode);
+                                        }
+
+                                        // ✅ Disable button
+                                        generateJoinCodeButton.setEnabled(false);
+                                        generateJoinCodeButton.setText("Already in a household");
+                                        generateJoinCodeButton.setAlpha(0.5f);
+                                    }
+
+                                });
+
+                    } else {
+                        // ✅ Reset UI if no flat
+                        joinCodeText.setText("Not set");
+                        generateJoinCodeButton.setEnabled(true);
+                        generateJoinCodeButton.setAlpha(1f);
+                        generateJoinCodeButton.setText("Generate");
+                    }
+
+                });
+
         generateJoinCodeButton.setOnClickListener(view -> {
 
             String flatName = flatNameInput.getText().toString().trim();
@@ -116,11 +158,37 @@ public class SettingsFragment extends Fragment {
                     .document(userId)
                     .get()
                     .addOnSuccessListener(userDoc -> {
+
                         String existingFlatId = userDoc.getString("flatId");
 
-                        // Stop if already part of a flat
+                        // Stop if already in a flat
                         if (existingFlatId != null) {
-                            Toast.makeText(requireContext(), "You already have a household", Toast.LENGTH_SHORT).show();
+
+                            // Fetch existing flat to show join code
+                            db.collection("flats")
+                                    .document(existingFlatId)
+                                    .get()
+                                    .addOnSuccessListener(flatDoc -> {
+
+                                        if (flatDoc.exists()) {
+
+                                            String joinCode = flatDoc.getString("joinCode");
+
+                                            // Show join code
+                                            if (joinCode != null) {
+                                                joinCodeText.setText(joinCode);
+                                            }
+
+                                            // Disable button
+                                            generateJoinCodeButton.setEnabled(false);
+                                            generateJoinCodeButton.setText("Already in a household");
+                                            generateJoinCodeButton.setAlpha(0.5f);
+
+                                            Toast.makeText(requireContext(), "You already have a household", Toast.LENGTH_SHORT).show();
+                                        }
+
+                                    });
+
                             return;
                         }
 
@@ -135,6 +203,7 @@ public class SettingsFragment extends Fragment {
                         db.collection("flats")
                                 .add(flat)
                                 .addOnSuccessListener(doc -> {
+
                                     String flatId = doc.getId();
 
                                     // link user to flat
@@ -144,15 +213,18 @@ public class SettingsFragment extends Fragment {
 
                                     Toast.makeText(requireContext(), "Household created!", Toast.LENGTH_SHORT).show();
                                 });
+
                     });
         });
 
         copyJoinCodeButton.setOnClickListener(view -> {
-            String code = prefs.getString(KEY_JOIN_CODE, "");
-            if (TextUtils.isEmpty(code)) {
-                Toast.makeText(requireContext(), "Generate a join code first", Toast.LENGTH_SHORT).show();
+            String code = joinCodeText.getText().toString();
+
+            if (TextUtils.isEmpty(code) || code.equals("Not set")) {
+                Toast.makeText(requireContext(), "No join code available", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
             clipboard.setPrimaryClip(ClipData.newPlainText("FlatFlex Join Code", code));
             Toast.makeText(requireContext(), "Copied to clipboard", Toast.LENGTH_SHORT).show();
