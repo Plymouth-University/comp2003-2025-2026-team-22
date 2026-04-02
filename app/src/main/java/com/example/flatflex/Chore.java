@@ -10,6 +10,7 @@ public class Chore {
     public String id;
     public String title;
     public String assignedTo;
+    public String assignedToId; // Unique user ID of the assigned user
     public boolean completed;
 
     // True if this chore was auto-created as a suggested/default chore

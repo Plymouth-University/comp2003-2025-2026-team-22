@@ -453,7 +453,7 @@ public class SettingsFragment extends Fragment {
         u.updateProfile(req)
                 .addOnSuccessListener(unused -> {
 
-                    // ✅ SAVE TO FIRESTORE
+                    // Save to Firestore
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
                     Map<String, Object> userData = new HashMap<>();

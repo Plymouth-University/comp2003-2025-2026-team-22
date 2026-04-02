@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -26,22 +27,29 @@ import java.util.List;
 
 /**
  * Chores screen:
- * - Stores chores in Firestore under users/{uid}/chores
- * - Suggested chores controlled by per-user toggle:
- *   users/{uid}/settings/chores { prepopulateEnabled: true|false }
- * - Per-chore actions: assign, delete, swap assignments, mark complete
+ * - Displays chores retrieved from Firestore
+ * - Supports filtering between "My chores" and "Household chores"
+ * - Allows assigning, deleting, swapping, and completing chores
  */
 public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreActionListener {
 
+    // List currently displayed in the UI (filtered)
     private final List<Chore> chores = new ArrayList<>();
+
+    // Full list retrieved from Firestore (unfiltered)
+    private final List<Chore> allChores = new ArrayList<>();
+
     private ChoreAdapter adapter;
     private ListenerRegistration choresListener;
 
     private final ChoreRepository repo = new ChoreRepository();
     private String uid;
 
-    // Prevent initial setChecked() from firing listener
+    // Prevents toggle callback firing when setting initial state
     private boolean suppressToggleCallback = false;
+
+    // Controls whether only the current user's chores are shown
+    private boolean showOnlyMine = true;
 
     public ChoresFragment() { }
 
@@ -53,14 +61,7 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
 
         View root = inflater.inflate(R.layout.fragment_chores, container, false);
 
-        View addBtn = root.findViewById(R.id.btnAddChore);
-        if (addBtn != null) {
-            addBtn.setOnClickListener(v ->
-                    startActivity(new android.content.Intent(requireContext(), AddChoreActivity.class))
-            );
-        }
-
-        // Recycler wiring
+        // Set up RecyclerView
         RecyclerView rv = root.findViewById(R.id.choresRecycler);
         if (rv != null) {
             rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -68,7 +69,32 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
             rv.setAdapter(adapter);
         }
 
-        // Firestore hookup: need logged-in user
+        // Set up toggle buttons for filtering view mode
+        MaterialButton btnMy = root.findViewById(R.id.btnMyChores);
+        MaterialButton btnAll = root.findViewById(R.id.btnAllChores);
+
+        if (btnMy != null && btnAll != null) {
+
+            // Default state: show only user's chores
+            btnMy.setAlpha(1f);
+            btnAll.setAlpha(0.5f);
+
+            btnMy.setOnClickListener(v -> {
+                showOnlyMine = true;
+                btnMy.setAlpha(1f);
+                btnAll.setAlpha(0.5f);
+                filterChores();
+            });
+
+            btnAll.setOnClickListener(v -> {
+                showOnlyMine = false;
+                btnAll.setAlpha(1f);
+                btnMy.setAlpha(0.5f);
+                filterChores();
+            });
+        }
+
+        // Ensure user is logged in
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             safeToast("Please log in to view chores.");
@@ -76,11 +102,10 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         }
         uid = user.getUid();
 
-        // Suggested chores toggle
+        // Suggested chores toggle (pre-populated chores feature)
         SwitchCompat toggle = root.findViewById(R.id.switchPrepopulate);
         if (toggle != null) {
 
-            // Listener (gated)
             toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (suppressToggleCallback) return;
                 if (uid == null) return;
@@ -98,7 +123,7 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                 }
             });
 
-            // Load persisted state (default true) without triggering listener
+            // Load saved toggle state without triggering the listener
             suppressToggleCallback = true;
             repo.getPrepopulateEnabled(uid)
                     .addOnSuccessListener(enabled -> {
@@ -120,7 +145,7 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                     .addOnCompleteListener(t -> suppressToggleCallback = false);
         }
 
-        // Live listener for chore list changes
+        // Listen for real-time updates to chores
         choresListener = repo.listenToChores(uid, (snapshots, e) -> {
             if (!isAdded()) return;
 
@@ -129,24 +154,50 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                 return;
             }
 
-            chores.clear();
-            chores.addAll(ChoreRepository.toChoreList(snapshots));
-            if (adapter != null) adapter.notifyDataSetChanged();
+            // Update full dataset from Firestore
+            allChores.clear();
+            allChores.addAll(ChoreRepository.toChoreList(snapshots));
 
-            View v = getView();
-            if (v != null) {
-                TextView hint = v.findViewById(R.id.choresHint);
-                if (hint != null) {
-                    hint.setVisibility(chores.isEmpty() ? View.VISIBLE : View.GONE);
-                }
-            }
+            // Apply current filter
+            filterChores();
         });
 
         return root;
     }
 
+    /**
+     * Filters the full chore list based on the selected view mode.
+     * Updates the RecyclerView with the filtered result.
+     */
+    private void filterChores() {
+
+        if (!isAdded()) return;
+
+        chores.clear();
+
+        if (showOnlyMine && uid != null) {
+            for (Chore c : allChores) {
+                if (uid.equals(c.assignedToId)) {
+                    chores.add(c);
+                }
+            }
+        } else {
+            chores.addAll(allChores);
+        }
+
+        if (adapter != null) adapter.notifyDataSetChanged();
+
+        View v = getView();
+        if (v != null) {
+            TextView hint = v.findViewById(R.id.choresHint);
+            if (hint != null) {
+                hint.setVisibility(chores.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+        }
+    }
+
     // -----------------------
-    // Item actions
+    // Chore actions
     // -----------------------
 
     @Override
@@ -158,7 +209,6 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                 .addOnSuccessListener(names -> {
                     if (!isAdded()) return;
 
-                    // If we couldn't load members, fall back to manual input
                     if (names == null || names.isEmpty()) {
                         showManualAssignDialog(chore);
                         return;
@@ -206,7 +256,6 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         if (!isAdded()) return;
         if (uid == null || chore == null || TextUtils.isEmpty(chore.id)) return;
 
-        // Build a list of other chores to swap with
         List<Chore> others = new ArrayList<>();
         for (Chore c : chores) {
             if (c != null && c.id != null && !c.id.equals(chore.id)) {
