@@ -39,14 +39,6 @@
             android:text="Enable suggested chores"
             android:checked="true" />
 
-        <!-- Add chore button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddChore"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Add New Chore" />
-
         <!-- Add chore input -->
         <EditText
             android:id="@+id/choreInput"

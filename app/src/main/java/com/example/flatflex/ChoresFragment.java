@@ -21,9 +21,13 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FieldValue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Chores screen:
@@ -33,10 +37,7 @@ import java.util.List;
  */
 public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreActionListener {
 
-    // List currently displayed in the UI (filtered)
     private final List<Chore> chores = new ArrayList<>();
-
-    // Full list retrieved from Firestore (unfiltered)
     private final List<Chore> allChores = new ArrayList<>();
 
     private ChoreAdapter adapter;
@@ -45,10 +46,7 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     private final ChoreRepository repo = new ChoreRepository();
     private String uid;
 
-    // Prevents toggle callback firing when setting initial state
     private boolean suppressToggleCallback = false;
-
-    // Controls whether only the current user's chores are shown
     private boolean showOnlyMine = true;
 
     public ChoresFragment() { }
@@ -61,7 +59,108 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
 
         View root = inflater.inflate(R.layout.fragment_chores, container, false);
 
-        // Set up RecyclerView
+        EditText choreInput = root.findViewById(R.id.choreInput);
+        android.widget.Spinner userSpinner = root.findViewById(R.id.userSpinner);
+        View saveBtn = root.findViewById(R.id.btnSaveChore);
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            safeToast("Please log in to view chores.");
+            return root;
+        }
+        uid = user.getUid();
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Load users into spinner
+        db.collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    db.collection("users")
+                            .whereEqualTo("flatId", flatId)
+                            .get()
+                            .addOnSuccessListener(query -> {
+
+                                List<String> names = new ArrayList<>();
+
+                                for (var doc : query.getDocuments()) {
+                                    String name = doc.getString("name");
+                                    if (name != null) names.add(name);
+                                }
+
+                                if (names.isEmpty()) names.add("Unassigned");
+
+                                android.widget.ArrayAdapter<String> adapter =
+                                        new android.widget.ArrayAdapter<>(
+                                                requireContext(),
+                                                android.R.layout.simple_spinner_item,
+                                                names
+                                        );
+
+                                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                userSpinner.setAdapter(adapter);
+
+                            });
+
+                });
+
+        // Save chore button logic
+        if (saveBtn != null) {
+            saveBtn.setOnClickListener(v -> {
+
+                String choreName = choreInput.getText().toString().trim();
+
+                if (TextUtils.isEmpty(choreName)) {
+                    choreInput.setError("Enter a chore name");
+                    return;
+                }
+
+                final String assignedName =
+                        (userSpinner != null && userSpinner.getSelectedItem() != null)
+                                ? userSpinner.getSelectedItem().toString()
+                                : "Unassigned";
+
+                db.collection("users")
+                        .document(uid)
+                        .get()
+                        .addOnSuccessListener(userDoc -> {
+
+                            String flatId = userDoc.getString("flatId");
+
+                            if (flatId == null) {
+                                Toast.makeText(requireContext(), "You are not in a household", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            Map<String, Object> chore = new HashMap<>();
+                            chore.put("title", choreName);
+                            chore.put("assignedTo", assignedName);
+                            chore.put("assignedToId", "");
+                            chore.put("completed", false);
+                            chore.put("createdAt", FieldValue.serverTimestamp());
+
+                            db.collection("flats")
+                                    .document(flatId)
+                                    .collection("chores")
+                                    .add(chore)
+                                    .addOnSuccessListener(doc -> {
+                                        Toast.makeText(requireContext(), "Chore added!", Toast.LENGTH_SHORT).show();
+                                        choreInput.setText("");
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                    });
+
+                        });
+
+            });
+        }
+
         RecyclerView rv = root.findViewById(R.id.choresRecycler);
         if (rv != null) {
             rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -69,13 +168,11 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
             rv.setAdapter(adapter);
         }
 
-        // Set up toggle buttons for filtering view mode
         MaterialButton btnMy = root.findViewById(R.id.btnMyChores);
         MaterialButton btnAll = root.findViewById(R.id.btnAllChores);
 
         if (btnMy != null && btnAll != null) {
 
-            // Default state: show only user's chores
             btnMy.setAlpha(1f);
             btnAll.setAlpha(0.5f);
 
@@ -94,15 +191,6 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
             });
         }
 
-        // Ensure user is logged in
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            safeToast("Please log in to view chores.");
-            return root;
-        }
-        uid = user.getUid();
-
-        // Suggested chores toggle (pre-populated chores feature)
         SwitchCompat toggle = root.findViewById(R.id.switchPrepopulate);
         if (toggle != null) {
 
@@ -110,20 +198,15 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                 if (suppressToggleCallback) return;
                 if (uid == null) return;
 
-                repo.setPrepopulateEnabled(uid, isChecked)
-                        .addOnFailureListener(e -> safeToast("Failed to save setting."));
+                repo.setPrepopulateEnabled(uid, isChecked);
 
                 if (isChecked) {
-                    repo.ensureDefaultChores(uid)
-                            .addOnFailureListener(e -> safeToast("Failed to add suggested chores."));
+                    repo.ensureDefaultChores(uid);
                 } else {
-                    repo.deleteDefaultChores(uid)
-                            .addOnSuccessListener(x -> safeToast("Suggested chores removed."))
-                            .addOnFailureListener(e -> safeToast("Failed to remove suggested chores."));
+                    repo.deleteDefaultChores(uid);
                 }
             });
 
-            // Load saved toggle state without triggering the listener
             suppressToggleCallback = true;
             repo.getPrepopulateEnabled(uid)
                     .addOnSuccessListener(enabled -> {
@@ -134,41 +217,48 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
 
                         if (enabled) repo.ensureDefaultChores(uid);
                     })
-                    .addOnFailureListener(e -> {
-                        if (!isAdded()) return;
-                        suppressToggleCallback = true;
-                        toggle.setChecked(true);
-                        suppressToggleCallback = false;
-
-                        repo.ensureDefaultChores(uid);
-                    })
                     .addOnCompleteListener(t -> suppressToggleCallback = false);
         }
 
-        // Listen for real-time updates to chores
-        choresListener = repo.listenToChores(uid, (snapshots, e) -> {
-            if (!isAdded()) return;
+        db.collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(userDoc -> {
 
-            if (e != null) {
-                safeToast("Failed to load chores.");
-                return;
-            }
+                    String flatId = userDoc.getString("flatId");
 
-            // Update full dataset from Firestore
-            allChores.clear();
-            allChores.addAll(ChoreRepository.toChoreList(snapshots));
+                    if (flatId == null) return;
 
-            // Apply current filter
-            filterChores();
-        });
+                    choresListener = db.collection("flats")
+                            .document(flatId)
+                            .collection("chores")
+                            .addSnapshotListener((snapshots, e) -> {
+
+                                if (!isAdded()) return;
+
+                                if (e != null) {
+                                    safeToast("Failed to load chores.");
+                                    return;
+                                }
+
+                                allChores.clear();
+
+                                for (var doc : snapshots.getDocuments()) {
+                                    Chore c = doc.toObject(Chore.class);
+                                    if (c != null) {
+                                        c.id = doc.getId();
+                                        allChores.add(c);
+                                    }
+                                }
+
+                                filterChores();
+                            });
+
+                });
 
         return root;
     }
 
-    /**
-     * Filters the full chore list based on the selected view mode.
-     * Updates the RecyclerView with the filtered result.
-     */
     private void filterChores() {
 
         if (!isAdded()) return;
@@ -176,11 +266,16 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         chores.clear();
 
         if (showOnlyMine && uid != null) {
+
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            String myName = currentUser != null ? currentUser.getDisplayName() : null;
+
             for (Chore c : allChores) {
-                if (uid.equals(c.assignedToId)) {
+                if (c.assignedTo != null && c.assignedTo.equals(myName)) {
                     chores.add(c);
                 }
             }
+
         } else {
             chores.addAll(allChores);
         }
@@ -196,129 +291,17 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         }
     }
 
-    // -----------------------
-    // Chore actions
-    // -----------------------
+    @Override
+    public void onAssign(Chore chore) { }
 
     @Override
-    public void onAssign(Chore chore) {
-        if (!isAdded()) return;
-        if (uid == null || chore == null || TextUtils.isEmpty(chore.id)) return;
-
-        repo.getAssignableMemberNames(uid)
-                .addOnSuccessListener(names -> {
-                    if (!isAdded()) return;
-
-                    if (names == null || names.isEmpty()) {
-                        showManualAssignDialog(chore);
-                        return;
-                    }
-
-                    String[] items = names.toArray(new String[0]);
-
-                    new AlertDialog.Builder(requireContext())
-                            .setTitle("Assign chore")
-                            .setMessage("Assign: " + safeTitle(chore))
-                            .setItems(items, (d, which) -> {
-                                String selected = items[which];
-                                repo.assignChore(uid, chore.id, selected)
-                                        .addOnFailureListener(e -> safeToast("Failed to assign chore."));
-                            })
-                            .setNegativeButton("Cancel", null)
-                            .show();
-                })
-                .addOnFailureListener(e -> showManualAssignDialog(chore));
-    }
-
-    private void showManualAssignDialog(Chore chore) {
-        if (!isAdded()) return;
-
-        EditText input = new EditText(requireContext());
-        input.setHint("e.g., Alex");
-        input.setText(chore.assignedTo == null ? "" : chore.assignedTo);
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Assign chore")
-                .setMessage("Who should do: " + safeTitle(chore) + "?")
-                .setView(input)
-                .setPositiveButton("Assign", (d, which) -> {
-                    String who = input.getText().toString().trim();
-                    if (TextUtils.isEmpty(who)) who = "Unassigned";
-                    repo.assignChore(uid, chore.id, who)
-                            .addOnFailureListener(e -> safeToast("Failed to assign chore."));
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
+    public void onSwap(Chore chore) { }
 
     @Override
-    public void onSwap(Chore chore) {
-        if (!isAdded()) return;
-        if (uid == null || chore == null || TextUtils.isEmpty(chore.id)) return;
-
-        List<Chore> others = new ArrayList<>();
-        for (Chore c : chores) {
-            if (c != null && c.id != null && !c.id.equals(chore.id)) {
-                others.add(c);
-            }
-        }
-
-        if (others.isEmpty()) {
-            safeToast("No other chores to swap with.");
-            return;
-        }
-
-        String[] labels = new String[others.size()];
-        for (int i = 0; i < others.size(); i++) {
-            Chore c = others.get(i);
-            String who = (c.assignedTo == null ? "Unassigned" : c.assignedTo);
-            labels[i] = safeTitle(c) + " (assigned to " + who + ")";
-        }
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Swap assignment with…")
-                .setItems(labels, (d, which) -> {
-                    Chore target = others.get(which);
-                    if (target == null || TextUtils.isEmpty(target.id)) return;
-
-                    repo.swapAssignments(uid, chore.id, target.id)
-                            .addOnSuccessListener(x -> safeToast("Assignments swapped."))
-                            .addOnFailureListener(e -> safeToast("Failed to swap assignments."));
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
+    public void onDelete(Chore chore) { }
 
     @Override
-    public void onDelete(Chore chore) {
-        if (!isAdded()) return;
-        if (uid == null || chore == null || TextUtils.isEmpty(chore.id)) return;
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Delete chore")
-                .setMessage("Delete \"" + safeTitle(chore) + "\"?")
-                .setPositiveButton("Delete", (d, which) -> {
-                    repo.deleteChore(uid, chore.id)
-                            .addOnFailureListener(e -> safeToast("Failed to delete chore."));
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    @Override
-    public void onToggleComplete(Chore chore) {
-        if (!isAdded()) return;
-        if (uid == null || chore == null || TextUtils.isEmpty(chore.id)) return;
-
-        if (chore.completed) {
-            safeToast("Already completed.");
-            return;
-        }
-
-        repo.markComplete(uid, chore.id)
-                .addOnSuccessListener(x -> safeToast("Marked complete."))
-                .addOnFailureListener(e -> safeToast("Failed to update chore."));
-    }
+    public void onToggleComplete(Chore chore) { }
 
     private void safeToast(String msg) {
         if (!isAdded()) return;
