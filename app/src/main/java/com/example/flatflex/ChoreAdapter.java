@@ -13,6 +13,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+/**
+ * RecyclerView adapter responsible for displaying chore items.
+ *
+ * Handles:
+ * - Binding chore data to UI
+ * - Displaying status (upcoming, due today, overdue, completed)
+ * - Handling user actions via listener callbacks
+ */
 public class ChoreAdapter extends RecyclerView.Adapter<ChoreAdapter.VH> {
 
     public interface ChoreActionListener {
@@ -50,32 +58,68 @@ public class ChoreAdapter extends RecyclerView.Adapter<ChoreAdapter.VH> {
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chore, parent, false);
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_chore, parent, false);
         return new VH(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
+
         Chore c = chores.get(position);
 
         holder.title.setText(c.title);
-        holder.assignedTo.setText("Assigned to: " + (c.assignedTo == null ? "Unassigned" : c.assignedTo));
-        holder.status.setText("Status: " + (c.completed ? "Completed" : "Pending"));
 
+        holder.assignedTo.setText(
+                "Assigned to: " + (c.assignedTo == null ? "Unassigned" : c.assignedTo)
+        );
+
+        // Determine status based on completion + due date
+        String statusText;
+
+        if (c.completed) {
+            statusText = "Completed";
+        } else if (c.dueDate == null) {
+            statusText = "Upcoming";
+        } else {
+            long now = System.currentTimeMillis();
+            long due = c.dueDate.toDate().getTime();
+
+            long diff = due - now;
+            long oneDay = 24 * 60 * 60 * 1000;
+
+            if (Math.abs(diff) < oneDay) {
+                statusText = "Due Today";
+            } else if (diff < 0) {
+                statusText = "Overdue";
+            } else {
+                statusText = "Upcoming";
+            }
+        }
+
+        holder.status.setText("Status: " + statusText);
+
+        // Disable button if already completed
         holder.markComplete.setEnabled(!c.completed);
+
         holder.markComplete.setOnClickListener(v -> {
             if (listener != null) listener.onToggleComplete(c);
         });
 
+        // Options menu (assign / swap / delete)
         holder.options.setOnClickListener(v -> {
             PopupMenu pm = new PopupMenu(context, holder.options);
+
             pm.getMenu().add("Assign");
             pm.getMenu().add("Swap");
             pm.getMenu().add("Delete");
-pm.setOnMenuItemClickListener(item -> {
-                String t = String.valueOf(item.getTitle());
+
+            pm.setOnMenuItemClickListener(item -> {
                 if (listener == null) return true;
-                switch (t) {
+
+                String action = item.getTitle().toString();
+
+                switch (action) {
                     case "Assign":
                         listener.onAssign(c);
                         return true;
@@ -85,10 +129,11 @@ pm.setOnMenuItemClickListener(item -> {
                     case "Delete":
                         listener.onDelete(c);
                         return true;
-default:
+                    default:
                         return false;
                 }
             });
+
             pm.show();
         });
     }

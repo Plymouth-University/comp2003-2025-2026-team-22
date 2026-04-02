@@ -11,7 +11,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -30,23 +29,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Chores screen:
- * - Displays chores retrieved from Firestore
- * - Supports filtering between "My chores" and "Household chores"
- * - Allows assigning, deleting, swapping, and completing chores
+ * Fragment responsible for displaying and managing chores within a household.
+ *
+ * Features:
+ * - Displays chores stored under a household (flat) in Firestore
+ * - Allows adding new chores with assignment
+ * - Supports filtering between "My chores" and "All chores"
+ * - Displays real-time updates using Firestore snapshot listeners
  */
 public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreActionListener {
 
+    // List currently displayed in RecyclerView (after filtering)
     private final List<Chore> chores = new ArrayList<>();
+
+    // Full dataset retrieved from Firestore (unfiltered)
     private final List<Chore> allChores = new ArrayList<>();
 
     private ChoreAdapter adapter;
     private ListenerRegistration choresListener;
 
-    private final ChoreRepository repo = new ChoreRepository();
+    // Firebase user ID of the currently logged-in user
     private String uid;
 
-    private boolean suppressToggleCallback = false;
+    // Determines whether only the current user's chores are shown
     private boolean showOnlyMine = true;
 
     public ChoresFragment() { }
@@ -59,10 +64,16 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
 
         View root = inflater.inflate(R.layout.fragment_chores, container, false);
 
+        // Input field for entering a new chore name
         EditText choreInput = root.findViewById(R.id.choreInput);
+
+        // Dropdown containing household member names
         android.widget.Spinner userSpinner = root.findViewById(R.id.userSpinner);
+
+        // Button used to save a new chore
         View saveBtn = root.findViewById(R.id.btnSaveChore);
 
+        // Ensure a user is logged in before proceeding
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             safeToast("Please log in to view chores.");
@@ -72,7 +83,10 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Load users into spinner
+        /**
+         * Load all users belonging to the same household (flat)
+         * and populate the dropdown (spinner) with their names.
+         */
         db.collection("users")
                 .document(uid)
                 .get()
@@ -102,14 +116,18 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                                                 names
                                         );
 
-                                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                adapter.setDropDownViewResource(
+                                        android.R.layout.simple_spinner_dropdown_item
+                                );
+
                                 userSpinner.setAdapter(adapter);
-
                             });
-
                 });
 
-        // Save chore button logic
+        /**
+         * Handles saving a new chore to Firestore.
+         * The chore is stored under the household (flat) rather than per-user.
+         */
         if (saveBtn != null) {
             saveBtn.setOnClickListener(v -> {
 
@@ -120,6 +138,7 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                     return;
                 }
 
+                // Get selected user name from dropdown
                 final String assignedName =
                         (userSpinner != null && userSpinner.getSelectedItem() != null)
                                 ? userSpinner.getSelectedItem().toString()
@@ -133,34 +152,43 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                             String flatId = userDoc.getString("flatId");
 
                             if (flatId == null) {
-                                Toast.makeText(requireContext(), "You are not in a household", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(requireContext(),
+                                        "You are not in a household",
+                                        Toast.LENGTH_SHORT).show();
                                 return;
                             }
 
+                            // Create Firestore object representing the chore
                             Map<String, Object> chore = new HashMap<>();
                             chore.put("title", choreName);
                             chore.put("assignedTo", assignedName);
-                            chore.put("assignedToId", "");
+                            chore.put("assignedToId", uid);
                             chore.put("completed", false);
                             chore.put("createdAt", FieldValue.serverTimestamp());
+                            chore.put("dueDate", FieldValue.serverTimestamp());
 
+                            // Save chore inside the household's collection
                             db.collection("flats")
                                     .document(flatId)
                                     .collection("chores")
                                     .add(chore)
                                     .addOnSuccessListener(doc -> {
-                                        Toast.makeText(requireContext(), "Chore added!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(requireContext(),
+                                                "Chore added!",
+                                                Toast.LENGTH_SHORT).show();
                                         choreInput.setText("");
                                     })
                                     .addOnFailureListener(e -> {
-                                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        Toast.makeText(requireContext(),
+                                                "Error: " + e.getMessage(),
+                                                Toast.LENGTH_LONG).show();
                                     });
 
                         });
-
             });
         }
 
+         // Set up RecyclerView for displaying chores
         RecyclerView rv = root.findViewById(R.id.choresRecycler);
         if (rv != null) {
             rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -168,6 +196,11 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
             rv.setAdapter(adapter);
         }
 
+        /**
+         * Toggle buttons to switch between:
+         * - Only current user's chores
+         * - All household chores
+         */
         MaterialButton btnMy = root.findViewById(R.id.btnMyChores);
         MaterialButton btnAll = root.findViewById(R.id.btnAllChores);
 
@@ -191,34 +224,7 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
             });
         }
 
-        SwitchCompat toggle = root.findViewById(R.id.switchPrepopulate);
-        if (toggle != null) {
-
-            toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (suppressToggleCallback) return;
-                if (uid == null) return;
-
-                repo.setPrepopulateEnabled(uid, isChecked);
-
-                if (isChecked) {
-                    repo.ensureDefaultChores(uid);
-                } else {
-                    repo.deleteDefaultChores(uid);
-                }
-            });
-
-            suppressToggleCallback = true;
-            repo.getPrepopulateEnabled(uid)
-                    .addOnSuccessListener(enabled -> {
-                        if (!isAdded()) return;
-                        suppressToggleCallback = true;
-                        toggle.setChecked(enabled);
-                        suppressToggleCallback = false;
-
-                        if (enabled) repo.ensureDefaultChores(uid);
-                    })
-                    .addOnCompleteListener(t -> suppressToggleCallback = false);
-        }
+         // Listen for real-time updates to chores in the household
 
         db.collection("users")
                 .document(uid)
@@ -226,7 +232,6 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                 .addOnSuccessListener(userDoc -> {
 
                     String flatId = userDoc.getString("flatId");
-
                     if (flatId == null) return;
 
                     choresListener = db.collection("flats")
@@ -253,12 +258,16 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
 
                                 filterChores();
                             });
-
                 });
 
         return root;
     }
 
+    /**
+     * Filters chores based on selected mode:
+     * - My chores (assigned to current user)
+     * - All chores in the household
+     */
     private void filterChores() {
 
         if (!isAdded()) return;
@@ -291,6 +300,8 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         }
     }
 
+    // Placeholder methods for future functionality (assign, swap, delete, complete)
+
     @Override
     public void onAssign(Chore chore) { }
 
@@ -303,11 +314,15 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     @Override
     public void onToggleComplete(Chore chore) { }
 
+
+    // Displays a short toast message safely (only if fragment is attached)
     private void safeToast(String msg) {
         if (!isAdded()) return;
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
+
+     // Ensures chore title is always safe to display
     private static String safeTitle(Chore chore) {
         if (chore == null) return "(Chore)";
         return TextUtils.isEmpty(chore.title) ? "(Untitled chore)" : chore.title;
@@ -316,6 +331,8 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        // Remove Firestore listener to prevent memory leaks
         if (choresListener != null) {
             choresListener.remove();
             choresListener = null;
