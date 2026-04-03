@@ -1,5 +1,6 @@
 package com.example.flatflex;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -11,7 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,6 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -138,57 +140,53 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
                     return;
                 }
 
-                // Get selected user name from dropdown
                 final String assignedName =
                         (userSpinner != null && userSpinner.getSelectedItem() != null)
                                 ? userSpinner.getSelectedItem().toString()
                                 : "Unassigned";
 
-                db.collection("users")
-                        .document(uid)
-                        .get()
-                        .addOnSuccessListener(userDoc -> {
+                Calendar cal = Calendar.getInstance();
 
-                            String flatId = userDoc.getString("flatId");
+                String[] options = {"Today", "Tomorrow", "Pick a date"};
 
-                            if (flatId == null) {
-                                Toast.makeText(requireContext(),
-                                        "You are not in a household",
-                                        Toast.LENGTH_SHORT).show();
-                                return;
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("When is this due?")
+                        .setItems(options, (dialog, which) -> {
+
+                            if (which == 0) {
+                                cal.set(Calendar.HOUR_OF_DAY, 23);
+                                cal.set(Calendar.MINUTE, 59);
+                                cal.set(Calendar.SECOND, 0);
+                                saveChoreWithDate(cal, choreName, assignedName);
+
+                            } else if (which == 1) {
+                                cal.add(Calendar.DAY_OF_YEAR, 1);
+                                cal.set(Calendar.HOUR_OF_DAY, 23);
+                                cal.set(Calendar.MINUTE, 59);
+                                cal.set(Calendar.SECOND, 0);
+                                saveChoreWithDate(cal, choreName, assignedName);
+
+                            } else {
+
+                                new DatePickerDialog(requireContext(),
+                                        (view, year, month, day) -> {
+
+                                            cal.set(year, month, day, 23, 59, 0);
+                                            saveChoreWithDate(cal, choreName, assignedName);
+
+                                        },
+                                        cal.get(Calendar.YEAR),
+                                        cal.get(Calendar.MONTH),
+                                        cal.get(Calendar.DAY_OF_MONTH)
+                                ).show();
                             }
 
-                            // Create Firestore object representing the chore
-                            Map<String, Object> chore = new HashMap<>();
-                            chore.put("title", choreName);
-                            chore.put("assignedTo", assignedName);
-                            chore.put("assignedToId", uid);
-                            chore.put("completed", false);
-                            chore.put("createdAt", FieldValue.serverTimestamp());
-                            chore.put("dueDate", FieldValue.serverTimestamp());
-
-                            // Save chore inside the household's collection
-                            db.collection("flats")
-                                    .document(flatId)
-                                    .collection("chores")
-                                    .add(chore)
-                                    .addOnSuccessListener(doc -> {
-                                        Toast.makeText(requireContext(),
-                                                "Chore added!",
-                                                Toast.LENGTH_SHORT).show();
-                                        choreInput.setText("");
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(requireContext(),
-                                                "Error: " + e.getMessage(),
-                                                Toast.LENGTH_LONG).show();
-                                    });
-
-                        });
+                        })
+                        .show();
             });
         }
 
-         // Set up RecyclerView for displaying chores
+        // Set up RecyclerView for displaying chores
         RecyclerView rv = root.findViewById(R.id.choresRecycler);
         if (rv != null) {
             rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -224,8 +222,7 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
             });
         }
 
-         // Listen for real-time updates to chores in the household
-
+        // Listen for real-time updates to chores in the household
         db.collection("users")
                 .document(uid)
                 .get()
@@ -263,11 +260,38 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         return root;
     }
 
-    /**
-     * Filters chores based on selected mode:
-     * - My chores (assigned to current user)
-     * - All chores in the household
-     */
+    private void saveChoreWithDate(Calendar cal, String choreName, String assignedName) {
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    Map<String, Object> chore = new HashMap<>();
+                    chore.put("title", choreName);
+                    chore.put("assignedTo", assignedName);
+                    chore.put("assignedToId", uid);
+                    chore.put("completed", false);
+                    chore.put("createdAt", FieldValue.serverTimestamp());
+                    chore.put("dueDate", new com.google.firebase.Timestamp(cal.getTime()));
+
+                    db.collection("flats")
+                            .document(flatId)
+                            .collection("chores")
+                            .add(chore)
+                            .addOnSuccessListener(doc -> {
+                                Toast.makeText(requireContext(),
+                                        "Chore added!",
+                                        Toast.LENGTH_SHORT).show();
+                            });
+                });
+    }
+
     private void filterChores() {
 
         if (!isAdded()) return;
@@ -300,8 +324,6 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         }
     }
 
-    // Placeholder methods for future functionality (assign, swap, delete, complete)
-
     @Override
     public void onAssign(Chore chore) { }
 
@@ -309,20 +331,70 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     public void onSwap(Chore chore) { }
 
     @Override
-    public void onDelete(Chore chore) { }
+    public void onDelete(Chore chore) {
+
+        if (chore == null || chore.id == null) return;
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Delete chore")
+                .setMessage("Are you sure you want to delete \"" + safeTitle(chore) + "\"?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+                    db.collection("users")
+                            .document(uid)
+                            .get()
+                            .addOnSuccessListener(userDoc -> {
+
+                                String flatId = userDoc.getString("flatId");
+                                if (flatId == null) return;
+
+                                db.collection("flats")
+                                        .document(flatId)
+                                        .collection("chores")
+                                        .document(chore.id)
+                                        .delete();
+                            });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
 
     @Override
-    public void onToggleComplete(Chore chore) { }
+    public void onToggleComplete(Chore chore) {
 
+        if (chore == null || chore.id == null) return;
 
-    // Displays a short toast message safely (only if fragment is attached)
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    db.collection("flats")
+                            .document(flatId)
+                            .collection("chores")
+                            .document(chore.id)
+                            .update(
+                                    "completed", true,
+                                    "completedAt", FieldValue.serverTimestamp()
+                            )
+                            .addOnSuccessListener(aVoid ->
+                                    Toast.makeText(requireContext(), "Completed!", Toast.LENGTH_SHORT).show()
+                            );
+                });
+    }
+
     private void safeToast(String msg) {
         if (!isAdded()) return;
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
-
-     // Ensures chore title is always safe to display
     private static String safeTitle(Chore chore) {
         if (chore == null) return "(Chore)";
         return TextUtils.isEmpty(chore.title) ? "(Untitled chore)" : chore.title;
@@ -332,7 +404,6 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     public void onDestroyView() {
         super.onDestroyView();
 
-        // Remove Firestore listener to prevent memory leaks
         if (choresListener != null) {
             choresListener.remove();
             choresListener = null;

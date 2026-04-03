@@ -99,11 +99,13 @@ public class ChoreAdapter extends RecyclerView.Adapter<ChoreAdapter.VH> {
 
         holder.status.setText("Status: " + statusText);
 
-        // Disable button if already completed
-        holder.markComplete.setEnabled(!c.completed);
+        holder.markComplete.setEnabled(true); // ALWAYS clickable
+        holder.markComplete.setAlpha(c.completed ? 0.5f : 1f);
 
         holder.markComplete.setOnClickListener(v -> {
-            if (listener != null) listener.onToggleComplete(c);
+            if (listener != null && !c.completed) {
+                listener.onToggleComplete(c);
+            }
         });
 
         // Options menu (assign / swap / delete)
