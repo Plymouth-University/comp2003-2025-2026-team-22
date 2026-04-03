@@ -328,7 +328,66 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     public void onAssign(Chore chore) { }
 
     @Override
-    public void onSwap(Chore chore) { }
+    public void onSwap(Chore chore) {
+
+        if (chore == null || chore.id == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    // Get all users in the same flat
+                    db.collection("users")
+                            .whereEqualTo("flatId", flatId)
+                            .get()
+                            .addOnSuccessListener(query -> {
+
+                                List<String> names = new ArrayList<>();
+
+                                for (var doc : query.getDocuments()) {
+                                    String name = doc.getString("name");
+
+                                    // Exclude current assignee
+                                    if (name != null && !name.equals(chore.assignedTo)) {
+                                        names.add(name);
+                                    }
+                                }
+
+                                if (names.isEmpty()) {
+                                    Toast.makeText(requireContext(),
+                                            "No other users to swap with",
+                                            Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                new AlertDialog.Builder(requireContext())
+                                        .setTitle("Swap chore with:")
+                                        .setItems(names.toArray(new String[0]), (dialog, which) -> {
+
+                                            String selectedUser = names.get(which);
+
+                                            db.collection("flats")
+                                                    .document(flatId)
+                                                    .collection("chores")
+                                                    .document(chore.id)
+                                                    .update("assignedTo", selectedUser)
+                                                    .addOnSuccessListener(aVoid ->
+                                                            Toast.makeText(requireContext(),
+                                                                    "Chore reassigned!",
+                                                                    Toast.LENGTH_SHORT).show()
+                                                    );
+                                        })
+                                        .setNegativeButton("Cancel", null)
+                                        .show();
+                            });
+                });
+    }
 
     @Override
     public void onDelete(Chore chore) {

@@ -21,24 +21,6 @@
             android:textSize="26sp"
             android:textStyle="bold" />
 
-        <!-- Actions header -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Actions"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <!-- Suggested chores toggle -->
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switchPrepopulate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Enable suggested chores"
-            android:checked="true" />
-
         <!-- Add chore input -->
         <EditText
             android:id="@+id/choreInput"
