@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- SCROLLABLE CONTENT -->
-
-    <ScrollView
-        android:layout_width="match_parent"
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
         android:background="#F5F7FA"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,54 +21,19 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- HEADER -->
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <!-- USER -->
+            <TextView
+                android:id="@+id/currentUserText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/homeTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Dashboard"
-                        android:textSize="28sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/currentUserText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Signed in as:"
-                        android:textColor="#777777"
-                        android:layout_marginTop="6dp"/>
-
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_account_circle"
-                    app:tint="@color/primary"
-                    android:contentDescription="User profile"/>
-
-            </LinearLayout>
-
+                android:text="User"
+                android:textSize="16sp"/>
 
             <!-- HOUSEHOLD CARD -->
-
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="@color/primary">
@@ -83,46 +48,40 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Your Household"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"/>
+                        android:textColor="@android:color/white"/>
 
                     <TextView
                         android:id="@+id/flatNameText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Flat: (not set)"
-                        android:textSize="22sp"
+                        android:text="Flat"
+                        android:textColor="@android:color/white"
+                        android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="@color/white"
                         android:layout_marginTop="6dp"/>
 
                     <TextView
                         android:id="@+id/joinCodeText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Join code: (not set)"
-                        android:textColor="@color/white"
+                        android:text="Code"
+                        android:textColor="@android:color/white"
                         android:layout_marginTop="6dp"/>
 
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
-
-            <!-- QUICK STATS ROW -->
-
+            <!-- STATS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:orientation="horizontal"
                 android:weightSum="3">
 
-                <!-- DUE TODAY -->
-
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="90dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
                     app:cardCornerRadius="16dp"
@@ -135,14 +94,6 @@
                         android:gravity="center"
                         android:orientation="vertical">
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_calendar_today"
-                            app:tint="#000000"
-                            android:contentDescription="Due today"
-                            android:layout_marginBottom="4dp"/>
-
                         <TextView
                             android:id="@+id/todayDueText"
                             android:layout_width="wrap_content"
@@ -154,19 +105,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Due Today"
-                            android:textSize="12sp"/>
+                            android:text="Today"/>
 
                     </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
-
-
-                <!-- OVERDUE -->
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="90dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:layout_marginEnd="6dp"
@@ -179,14 +125,6 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_warning"
-                            app:tint="@android:color/white"
-                            android:contentDescription="Overdue chores"
-                            android:layout_marginBottom="4dp"/>
 
                         <TextView
                             android:id="@+id/overdueText"
@@ -201,19 +139,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Overdue"
-                            android:textSize="12sp"
                             android:textColor="@android:color/white"/>
 
                     </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
-
-
-                <!-- COMPLETED -->
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="90dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     app:cardCornerRadius="16dp"
@@ -225,14 +158,6 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_check_circle"
-                            app:tint="@android:color/white"
-                            android:contentDescription="Completed chores"
-                            android:layout_marginBottom="4dp"/>
 
                         <TextView
                             android:id="@+id/completedWeekText"
@@ -247,92 +172,102 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Completed"
-                            android:textSize="12sp"
                             android:textColor="@android:color/white"/>
 
                     </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
 
-
-            <!-- TODAY CARD -->
-
+            <!-- TODAY BOX -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                app:cardCornerRadius="18dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="18dp">
+                    android:padding="16dp">
 
                     <TextView
+                        android:text="Today's Chores"
+                        android:textStyle="bold"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Today"
-                        android:textSize="16sp"
-                        android:textStyle="bold"/>
+                        android:layout_height="wrap_content"/>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/todayChoresRecycler"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
                         android:nestedScrollingEnabled="false"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnGoToChores"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Open Chores"
-                        android:layout_marginTop="14dp"/>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
-
-            <!-- UPCOMING CARD -->
-
+                       <!-- UPCOMING BOX -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                app:cardCornerRadius="18dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="18dp">
+                    android:padding="16dp">
 
                     <TextView
+                        android:text="Upcoming Chores"
+                        android:textStyle="bold"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Upcoming"
-                        android:textSize="16sp"
-                        android:textStyle="bold"/>
+                        android:layout_height="wrap_content"/>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/upcomingChoresRecycler"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
                         android:nestedScrollingEnabled="false"/>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
+		
+
+		<!-- OVERDUE BOX -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:text="Overdue Chores"
+                        android:textStyle="bold"
+                        android:textColor="#F44336"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/overdueChoresRecycler"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
 
         </LinearLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,33 +6,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.firestore.FieldValue;
 
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class HomeFragment extends Fragment implements ChoreAdapter.ChoreActionListener {
 
-    private static final String PREFS = "flatflex_prefs";
-    private static final String KEY_FLAT_NAME = "flat_name";
-    private static final String KEY_JOIN_CODE = "join_code";
-
-    public HomeFragment() { }
+    public HomeFragment() {}
 
     @Nullable
     @Override
@@ -42,132 +35,130 @@ public class HomeFragment extends Fragment implements ChoreAdapter.ChoreActionLi
 
         View v = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Signed-in label
-        TextView currentUserText = v.findViewById(R.id.currentUserText);
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUserText != null && user != null) {
-            String name = user.getDisplayName();
-            if (!TextUtils.isEmpty(name)) {
-                currentUserText.setText("Signed in as: " + name);
-            } else if (!TextUtils.isEmpty(user.getEmail())) {
-                currentUserText.setText("Signed in as: " + user.getEmail());
-            } else {
-                currentUserText.setText("Signed in as: ");
-            }
-        }
 
-        // Household info
+        // ========================
+        // TEXT VIEWS
+        // ========================
+        TextView currentUserText = v.findViewById(R.id.currentUserText);
         TextView flatNameText = v.findViewById(R.id.flatNameText);
         TextView joinCodeText = v.findViewById(R.id.joinCodeText);
 
-        // Dashboard stat views
         TextView todayDueText = v.findViewById(R.id.todayDueText);
         TextView overdueText = v.findViewById(R.id.overdueText);
         TextView completedText = v.findViewById(R.id.completedWeekText);
 
-        // Recycler for today's chores
+        // ========================
+        // RECYCLERS
+        // ========================
         RecyclerView todayRecycler = v.findViewById(R.id.todayChoresRecycler);
-
-        // Upcoming recycler
+        RecyclerView overdueRecycler = v.findViewById(R.id.overdueChoresRecycler);
         RecyclerView upcomingRecycler = v.findViewById(R.id.upcomingChoresRecycler);
 
-        // List + adapter for today's chores
-        List<Chore> todayChores = new ArrayList<>();
-        ChoreAdapter todayAdapter = new ChoreAdapter(requireContext(), todayChores, this);
+        // ========================
+        // USER DISPLAY
+        // ========================
+        if (user != null && currentUserText != null) {
+            String name = user.getDisplayName();
+            if (!TextUtils.isEmpty(name)) {
+                currentUserText.setText("Signed in as: " + name);
+            } else if (user.getEmail() != null) {
+                currentUserText.setText("Signed in as: " + user.getEmail());
+            }
+        }
 
-        // Upcoming list + adapter
+        // ========================
+        // LISTS
+        // ========================
+        List<Chore> todayChores = new ArrayList<>();
+        List<Chore> overdueChores = new ArrayList<>();
         List<Chore> upcomingChores = new ArrayList<>();
+
+        // ========================
+        // ADAPTERS
+        // ========================
+        ChoreAdapter todayAdapter = new ChoreAdapter(requireContext(), todayChores, this);
+        ChoreAdapter overdueAdapter = new ChoreAdapter(requireContext(), overdueChores, this);
         ChoreAdapter upcomingAdapter = new ChoreAdapter(requireContext(), upcomingChores, this);
 
-        if (todayRecycler != null) {
-            todayRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
-            todayRecycler.setAdapter(todayAdapter);
-        }
+        // ========================
+        // RECYCLER SETUP
+        // ========================
+        todayRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        todayRecycler.setAdapter(todayAdapter);
 
-        // Setup upcoming recycler
-        if (upcomingRecycler != null) {
-            upcomingRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
-            upcomingRecycler.setAdapter(upcomingAdapter);
-        }
+        overdueRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        overdueRecycler.setAdapter(overdueAdapter);
+
+        upcomingRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        upcomingRecycler.setAdapter(upcomingAdapter);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        if (firebaseUser != null) {
-            String userId = firebaseUser.getUid();
+        if (user != null) {
+            String userId = user.getUid();
 
             // Ensure user doc exists
-            db.collection("users")
-                    .document(userId)
+            db.collection("users").document(userId)
                     .set(new HashMap<>(), SetOptions.merge());
 
-            // Get user data
-            db.collection("users")
-                    .document(userId)
+            db.collection("users").document(userId)
                     .get()
                     .addOnSuccessListener(userDoc -> {
 
-                        if (!userDoc.exists()) return;
-
                         String flatId = userDoc.getString("flatId");
-
                         if (flatId == null) return;
 
-                        // Load household info
-                        db.collection("flats")
-                                .document(flatId)
+                        // ========================
+                        // LOAD FLAT INFO
+                        // ========================
+                        db.collection("flats").document(flatId)
                                 .get()
                                 .addOnSuccessListener(flatDoc -> {
+                                    if (flatNameText != null)
+                                        flatNameText.setText("Flat: " + flatDoc.getString("name"));
 
-                                    if (!flatDoc.exists()) return;
-
-                                    String flatName = flatDoc.getString("name");
-                                    String joinCode = flatDoc.getString("joinCode");
-
-                                    if (flatNameText != null) {
-                                        flatNameText.setText("Flat: " + flatName);
-                                    }
-
-                                    if (joinCodeText != null) {
-                                        joinCodeText.setText("Join code: " + joinCode);
-                                    }
+                                    if (joinCodeText != null)
+                                        joinCodeText.setText("Join code: " + flatDoc.getString("joinCode"));
                                 });
 
-                        /**
-                         * REAL-TIME LISTENER FOR CHORES
-                         * - Counts stats (today, overdue, completed)
-                         * - Populates today's chore list
-                         */
+                        // ========================
+                        // REALTIME CHORES
+                        // ========================
                         db.collection("flats")
                                 .document(flatId)
                                 .collection("chores")
                                 .addSnapshotListener((snapshots, e) -> {
 
-                                    if (e != null || snapshots == null) return;
+                                    if (snapshots == null) return;
 
                                     int todayCount = 0;
                                     int overdueCount = 0;
                                     int completedCount = 0;
 
                                     todayChores.clear();
+                                    overdueChores.clear();
                                     upcomingChores.clear();
 
                                     long now = System.currentTimeMillis();
-                                    long oneDay = 24 * 60 * 60 * 1000;
-                                    long threeDays = 3 * oneDay;
+                                    long oneDay = 86400000;
 
-                                    String myName = firebaseUser.getDisplayName();
+                                    long startOfToday = now - (now % oneDay);
+                                    long startOfTomorrow = startOfToday + oneDay;
+
+                                    String myName = user.getDisplayName();
 
                                     for (var doc : snapshots.getDocuments()) {
 
                                         Chore c = doc.toObject(Chore.class);
                                         if (c == null) continue;
 
-                                        // Set chore ID
                                         c.id = doc.getId();
 
+                                        // Only my chores
                                         if (c.assignedTo == null || !c.assignedTo.equals(myName)) continue;
 
+                                        // Completed
                                         if (c.completed) {
                                             completedCount++;
                                             continue;
@@ -176,86 +167,50 @@ public class HomeFragment extends Fragment implements ChoreAdapter.ChoreActionLi
                                         if (c.dueDate == null) continue;
 
                                         long due = c.dueDate.toDate().getTime();
-                                        long diff = due - now;
 
-                                        if (Math.abs(diff) < oneDay) {
+                                        if (due >= startOfToday && due < startOfTomorrow) {
                                             todayCount++;
                                             todayChores.add(c);
 
-                                        } else if (diff > oneDay && diff < threeDays) {
+                                        } else if (due >= startOfTomorrow) {
                                             upcomingChores.add(c);
 
-                                        } else if (diff < 0) {
+                                        } else {
                                             overdueCount++;
+                                            overdueChores.add(c);
                                         }
                                     }
 
-                                    if (todayDueText != null) {
+                                    // SORT
+                                    Collections.sort(upcomingChores, (a, b) -> a.dueDate.compareTo(b.dueDate));
+                                    Collections.sort(overdueChores, (a, b) -> a.dueDate.compareTo(b.dueDate));
+
+                                    // ========================
+                                    // UPDATE UI
+                                    // ========================
+                                    if (todayDueText != null)
                                         todayDueText.setText(String.valueOf(todayCount));
-                                    }
 
-                                    if (overdueText != null) {
+                                    if (overdueText != null)
                                         overdueText.setText(String.valueOf(overdueCount));
-                                    }
 
-                                    if (completedText != null) {
+                                    if (completedText != null)
                                         completedText.setText(String.valueOf(completedCount));
-                                    }
 
                                     todayAdapter.notifyDataSetChanged();
+                                    overdueAdapter.notifyDataSetChanged();
                                     upcomingAdapter.notifyDataSetChanged();
                                 });
-
                     });
-        }
-
-        // Navigate to chores screen
-        View goToChores = v.findViewById(R.id.btnGoToChores);
-        if (goToChores != null) {
-            goToChores.setOnClickListener(view -> {
-                if (getActivity() == null) return;
-                BottomNavigationView bottomNav = getActivity().findViewById(R.id.bottomNav);
-                if (bottomNav != null) {
-                    bottomNav.setSelectedItemId(R.id.nav_chores);
-                }
-            });
         }
 
         return v;
     }
 
-    @Override
-    public void onToggleComplete(Chore chore) {
-
-        if (chore == null || chore.id == null) return;
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (user == null) return;
-
-        db.collection("users")
-                .document(user.getUid())
-                .get()
-                .addOnSuccessListener(userDoc -> {
-
-                    String flatId = userDoc.getString("flatId");
-                    if (flatId == null) return;
-
-                    db.collection("flats")
-                            .document(flatId)
-                            .collection("chores")
-                            .document(chore.id)
-                            .update(
-                                    "completed", true,
-                                    "completedAt", FieldValue.serverTimestamp()
-                            )
-                            .addOnSuccessListener(aVoid ->
-                                    Toast.makeText(requireContext(), "Completed!", Toast.LENGTH_SHORT).show()
-                            );
-                });
-    }
-
+    // ========================
+    // ACTIONS
+    // ========================
+    @Override public void onToggleComplete(Chore chore) {}
     @Override public void onDelete(Chore chore) {}
     @Override public void onAssign(Chore chore) {}
     @Override public void onSwap(Chore chore) {}
