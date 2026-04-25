@@ -94,6 +94,13 @@
                         android:gravity="center"
                         android:orientation="vertical">
 
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_calendar_today"
+                            app:tint="@android:color/black"
+                            android:layout_marginBottom="4dp"/>
+
                         <TextView
                             android:id="@+id/todayDueText"
                             android:layout_width="wrap_content"
@@ -125,6 +132,13 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_warning"
+                            app:tint="@android:color/white"
+                            android:layout_marginBottom="4dp"/>
 
                         <TextView
                             android:id="@+id/overdueText"
@@ -158,6 +172,13 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_check_circle"
+                            app:tint="@android:color/white"
+                            android:layout_marginBottom="4dp"/>
 
                         <TextView
                             android:id="@+id/completedWeekText"
