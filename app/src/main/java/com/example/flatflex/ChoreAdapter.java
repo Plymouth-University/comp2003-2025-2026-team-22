@@ -25,7 +25,6 @@ import android.widget.Spinner;
 public class ChoreAdapter extends RecyclerView.Adapter<ChoreAdapter.VH> {
 
     public interface ChoreActionListener {
-        void onAssign(Chore chore);
         void onSwap(Chore chore);
         void onDelete(Chore chore);
         void onToggleComplete(Chore chore);
@@ -115,7 +114,6 @@ public class ChoreAdapter extends RecyclerView.Adapter<ChoreAdapter.VH> {
         holder.options.setOnClickListener(v -> {
             PopupMenu pm = new PopupMenu(context, holder.options);
 
-            pm.getMenu().add("Assign");
             pm.getMenu().add("Swap");
             pm.getMenu().add("Delete");
 
@@ -125,9 +123,6 @@ public class ChoreAdapter extends RecyclerView.Adapter<ChoreAdapter.VH> {
                 String action = item.getTitle().toString();
 
                 switch (action) {
-                    case "Assign":
-                        listener.onAssign(c);
-                        return true;
                     case "Swap":
                         listener.onSwap(c);
                         return true;

@@ -261,11 +261,6 @@ public class HomeFragment extends Fragment implements ChoreAdapter.ChoreActionLi
                 });
     }
 
-    @Override
-    public void onAssign(Chore chore) {
-        // For now: no-op (handle assignment in a dialog elsewhere - possibly obsolete?)
-        // You can expand this later if needed
-    }
 
     @Override
     public void onSwap(Chore chore) {

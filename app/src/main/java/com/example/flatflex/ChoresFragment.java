@@ -421,11 +421,6 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
         }
     }
 
-    @Override
-    public void onAssign(Chore chore) {
-        // Assign uses same logic as swap (choose user)
-        onSwap(chore);
-    }
 
     @Override
     public void onSwap(Chore chore) {
