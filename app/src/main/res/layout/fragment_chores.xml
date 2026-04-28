@@ -29,6 +29,7 @@
             android:hint="Chore name"
             android:layout_marginTop="10dp" />
 
+
         <Spinner
             android:id="@+id/userSpinner"
             android:layout_width="match_parent"
@@ -43,6 +44,12 @@
             android:layout_marginTop="8dp" />
 
         <!-- VIEW TOGGLE (ADDED) -->
+
+        <Button
+            android:id="@+id/btnAutoAssign"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Auto Assign Fairly" />
 
         <!-- Assigned chores section -->
         <LinearLayout

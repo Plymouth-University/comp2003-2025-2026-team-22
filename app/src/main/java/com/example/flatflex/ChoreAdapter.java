@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+import android.widget.Spinner;
 
 /**
  * RecyclerView adapter responsible for displaying chore items.
@@ -33,6 +34,8 @@ public class ChoreAdapter extends RecyclerView.Adapter<ChoreAdapter.VH> {
     private final List<Chore> chores;
     private final Context context;
     private final ChoreActionListener listener;
+
+
 
     public ChoreAdapter(Context context, List<Chore> chores, ChoreActionListener listener) {
         this.context = context;
