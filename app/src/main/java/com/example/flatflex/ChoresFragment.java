@@ -58,7 +58,8 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     private final List<String> memberNames = new ArrayList<>();
     private final List<String> memberIds = new ArrayList<>();
 
-    public ChoresFragment() { }
+    public ChoresFragment() {
+    }
 
     @Nullable
     @Override
@@ -421,16 +422,132 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
     }
 
     @Override
-    public void onAssign(Chore chore) { }
+    public void onAssign(Chore chore) {
+        // Assign uses same logic as swap (choose user)
+        onSwap(chore);
+    }
 
     @Override
-    public void onSwap(Chore chore) { }
+    public void onSwap(Chore chore) {
+
+        if (!isAdded() || chore == null || chore.id == null) return;
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    db.collection("users")
+                            .whereEqualTo("flatId", flatId)
+                            .get()
+                            .addOnSuccessListener(query -> {
+
+                                List<String> names = new ArrayList<>();
+                                List<String> ids = new ArrayList<>();
+
+                                for (var doc : query.getDocuments()) {
+                                    String name = doc.getString("name");
+                                    if (name == null) continue;
+
+                                    names.add(name);
+                                    ids.add(doc.getId());
+                                }
+
+                                if (names.isEmpty()) return;
+
+                                new android.app.AlertDialog.Builder(requireContext())
+                                        .setTitle("Assign Chore")
+                                        .setItems(names.toArray(new String[0]), (dialog, which) -> {
+
+                                            String newName = names.get(which);
+                                            String newId = ids.get(which);
+
+                                            db.collection("flats")
+                                                    .document(flatId)
+                                                    .collection("chores")
+                                                    .document(chore.id)
+                                                    .update(
+                                                            "assignedTo", newName,
+                                                            "assignedToId", newId
+                                                    )
+                                                    .addOnSuccessListener(aVoid -> safeToast("Chore reassigned"))
+                                                    .addOnFailureListener(e -> safeToast("Failed to reassign"));
+                                        })
+                                        .show();
+                            });
+                });
+    }
 
     @Override
-    public void onDelete(Chore chore) { }
+    public void onDelete(Chore chore) {
+
+        if (!isAdded() || chore == null || chore.id == null) return;
+
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Delete Chore")
+                .setMessage("Are you sure you want to delete this chore?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    if (user == null) return;
+
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+                    db.collection("users").document(user.getUid())
+                            .get()
+                            .addOnSuccessListener(userDoc -> {
+
+                                String flatId = userDoc.getString("flatId");
+                                if (flatId == null) return;
+
+                                db.collection("flats")
+                                        .document(flatId)
+                                        .collection("chores")
+                                        .document(chore.id)
+                                        .delete()
+                                        .addOnSuccessListener(aVoid -> safeToast("Chore deleted"))
+                                        .addOnFailureListener(e -> safeToast("Failed to delete"));
+                            });
+
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
 
     @Override
-    public void onToggleComplete(Chore chore) { }
+    public void onToggleComplete(Chore chore) {
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || chore == null || chore.id == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    db.collection("flats")
+                            .document(flatId)
+                            .collection("chores")
+                            .document(chore.id)
+                            .update(
+                                    "completed", true,
+                                    "completedAt", com.google.firebase.firestore.FieldValue.serverTimestamp()
+                            )
+                            .addOnSuccessListener(aVoid -> safeToast("Chore completed"))
+                            .addOnFailureListener(e -> safeToast("Update failed"));
+                });
+    }
 
     private void safeToast(String msg) {
         if (!isAdded()) return;

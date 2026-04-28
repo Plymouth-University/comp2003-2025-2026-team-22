@@ -25,7 +25,8 @@ import java.util.Collections;
 
 public class HomeFragment extends Fragment implements ChoreAdapter.ChoreActionListener {
 
-    public HomeFragment() {}
+    public HomeFragment() {
+    }
 
     @Nullable
     @Override
@@ -156,7 +157,8 @@ public class HomeFragment extends Fragment implements ChoreAdapter.ChoreActionLi
                                         c.id = doc.getId();
 
                                         // Only my chores
-                                        if (c.assignedTo == null || !c.assignedTo.equals(myName)) continue;
+                                        if (c.assignedTo == null || !c.assignedTo.equals(myName))
+                                            continue;
 
                                         // Completed
                                         if (c.completed) {
@@ -210,8 +212,63 @@ public class HomeFragment extends Fragment implements ChoreAdapter.ChoreActionLi
     // ========================
     // ACTIONS
     // ========================
-    @Override public void onToggleComplete(Chore chore) {}
-    @Override public void onDelete(Chore chore) {}
-    @Override public void onAssign(Chore chore) {}
-    @Override public void onSwap(Chore chore) {}
+    @Override
+    public void onToggleComplete(Chore chore) {
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || chore == null || chore.id == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    db.collection("flats")
+                            .document(flatId)
+                            .collection("chores")
+                            .document(chore.id)
+                            .update(
+                                    "completed", true,
+                                    "completedAt", com.google.firebase.firestore.FieldValue.serverTimestamp()
+                            );
+                });
+    }
+
+    @Override
+    public void onDelete(Chore chore) {
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || chore == null || chore.id == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String flatId = userDoc.getString("flatId");
+                    if (flatId == null) return;
+
+                    db.collection("flats")
+                            .document(flatId)
+                            .collection("chores")
+                            .document(chore.id)
+                            .delete();
+                });
+    }
+
+    @Override
+    public void onAssign(Chore chore) {
+        // For now: no-op (handle assignment in a dialog elsewhere - possibly obsolete?)
+        // You can expand this later if needed
+    }
+
+    @Override
+    public void onSwap(Chore chore) {
+        // Placeholder – depends on your swap logic (not implemented in your system yet)
+    }
 }
