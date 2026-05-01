@@ -138,10 +138,10 @@ public class SignupActivity extends AppCompatActivity {
     private void updatePasswordRules(String password) {
 
         if (password.length() >= 8) {
-            ruleLength.setText("✔ At least 8 characters");
+            ruleLength.setText("✔ At least 6 characters");
             ruleLength.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
         } else {
-            ruleLength.setText("✖ At least 8 characters");
+            ruleLength.setText("✖ At least 6 characters");
             ruleLength.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
         }
 
@@ -170,7 +170,7 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
-    // ✅ NEW: validation function
+    // Validation function
     private boolean isValidPassword(String password) {
         return password.length() >= 8 &&
                 password.matches(".*[A-Z].*") &&
