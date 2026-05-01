@@ -35,6 +35,7 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -91,6 +92,9 @@ public class SettingsFragment extends Fragment {
 
         // Leave household
         Button leaveFlatButton = v.findViewById(R.id.leaveFlatButton);
+
+        // View household members
+        Button viewMembersButton = v.findViewById(R.id.viewMembersButton);
 
         // Prefill flat settings
         flatNameInput.setText(prefs.getString(KEY_FLAT_NAME, ""));
@@ -153,6 +157,9 @@ public class SettingsFragment extends Fragment {
                                         joinFlatButton.setEnabled(false);
                                         joinFlatButton.setAlpha(0.5f);
                                         joinCodeInput.setEnabled(false);
+
+                                        // Show household members button
+                                        viewMembersButton.setVisibility(View.VISIBLE);
                                     }
 
                                 });
@@ -168,6 +175,9 @@ public class SettingsFragment extends Fragment {
                         joinFlatButton.setEnabled(true);
                         joinFlatButton.setAlpha(1f);
                         joinCodeInput.setEnabled(true);
+
+                        // Hide show household members button
+                        viewMembersButton.setVisibility(View.GONE);
                     }
 
                 });
@@ -366,6 +376,54 @@ public class SettingsFragment extends Fragment {
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
+        });
+
+        // View household members
+        viewMembersButton.setOnClickListener(view -> {
+
+            db.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener(userDoc -> {
+
+                        String flatId = userDoc.getString("flatId");
+
+                        if (flatId == null) {
+                            Toast.makeText(requireContext(),
+                                    "You are not in a household",
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        db.collection("users")
+                                .whereEqualTo("flatId", flatId)
+                                .get()
+                                .addOnSuccessListener(querySnapshot -> {
+
+                                    if (querySnapshot.isEmpty()) {
+                                        Toast.makeText(requireContext(),
+                                                "No members found",
+                                                Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+
+                                    StringBuilder members = new StringBuilder();
+
+                                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                                        String name = doc.getString("name");
+
+                                        if (name == null) name = "Unnamed user";
+
+                                        members.append("• ").append(name).append("\n");
+                                    }
+
+                                    new AlertDialog.Builder(requireContext())
+                                            .setTitle("Household Members")
+                                            .setMessage(members.toString())
+                                            .setPositiveButton("OK", null)
+                                            .show();
+                                });
+                    });
         });
 
         return v;
