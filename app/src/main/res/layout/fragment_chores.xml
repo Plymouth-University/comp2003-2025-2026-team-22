@@ -1,105 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="#F5F5F5">
+    android:orientation="vertical"
+    android:background="#F5F5F5"
+    android:padding="16dp">
 
-    <LinearLayout
+    <!-- Title -->
+    <TextView
+        android:id="@+id/choresTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chores"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <!-- Add chore input -->
+    <EditText
+        android:id="@+id/choreInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:hint="Chore name"
+        android:layout_marginTop="10dp" />
 
-        <!-- Title -->
-        <TextView
-            android:id="@+id/choresTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chores"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+    <Spinner
+        android:id="@+id/userSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" />
 
-        <!-- Add chore input -->
-        <EditText
-            android:id="@+id/choreInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Chore name"
-            android:layout_marginTop="10dp" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSaveChore"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save Chore"
+        android:layout_marginTop="8dp" />
 
+    <Button
+        android:id="@+id/btnAutoAssign"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Auto Assign Fairly" />
 
-        <Spinner
-            android:id="@+id/userSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" />
+    <!-- Toggle buttons -->
+    <LinearLayout
+        android:id="@+id/toggleViewMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSaveChore"
-            android:layout_width="match_parent"
+            android:id="@+id/btnMyChores"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Save Chore"
-            android:layout_marginTop="8dp" />
+            android:layout_weight="1"
+            android:text="My chores"
+            android:layout_marginEnd="6dp"/>
 
-        <!-- VIEW TOGGLE (ADDED) -->
-
-        <Button
-            android:id="@+id/btnAutoAssign"
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAllChores"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Auto Assign Fairly" />
-
-        <!-- Assigned chores section -->
-        <LinearLayout
-            android:id="@+id/toggleViewMode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMyChores"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="My chores"
-                android:layout_marginEnd="6dp"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAllChores"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Household"
-                android:layout_marginStart="6dp"/>
-
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Assigned Chores"
-            android:textStyle="bold"
-            android:textSize="18sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/choresRecycler"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:nestedScrollingEnabled="false" />
-
-        <TextView
-            android:id="@+id/choresHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="No chores yet. Add one or enable suggested chores."
-            android:textSize="13sp"
-            android:textColor="#666666" />
-
+            android:layout_weight="1"
+            android:text="Household"
+            android:layout_marginStart="6dp"/>
     </LinearLayout>
-</ScrollView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Assigned Chores"
+        android:textStyle="bold"
+        android:textSize="18sp" />
+
+    <!-- Bug fix - resolved issue where only 4 chores can be viewed -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/choresRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/choresHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="No chores yet. Add one or enable suggested chores."
+        android:textSize="13sp"
+        android:textColor="#666666" />
+
+</LinearLayout>
