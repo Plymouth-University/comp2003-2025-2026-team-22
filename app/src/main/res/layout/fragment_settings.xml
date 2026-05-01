@@ -171,6 +171,15 @@
                         android:text="Join Household"
                         android:layout_marginTop="8dp"/>
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/leaveFlatButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Leave Household"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="#D32F2F"
+                        android:textColor="@android:color/white"/>
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

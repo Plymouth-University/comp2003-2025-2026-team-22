@@ -89,6 +89,9 @@ public class SettingsFragment extends Fragment {
         EditText joinCodeInput = v.findViewById(R.id.joinCodeInput);
         Button joinFlatButton = v.findViewById(R.id.joinFlatButton);
 
+        // Leave household
+        Button leaveFlatButton = v.findViewById(R.id.leaveFlatButton);
+
         // Prefill flat settings
         flatNameInput.setText(prefs.getString(KEY_FLAT_NAME, ""));
 
@@ -323,6 +326,46 @@ public class SettingsFragment extends Fragment {
                         Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
 
+        });
+
+        // Leave household
+        leaveFlatButton.setOnClickListener(view -> {
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Leave Household")
+                    .setMessage("Are you sure you want to leave this household?")
+                    .setPositiveButton("Leave", (dialog, which) -> {
+
+                        db.collection("users")
+                                .document(userId)
+                                .update("flatId", null)
+                                .addOnSuccessListener(unused -> {
+
+                                    // Reset UI
+                                    joinCodeText.setText("Not set");
+
+                                    generateJoinCodeButton.setEnabled(true);
+                                    generateJoinCodeButton.setText("Generate");
+                                    generateJoinCodeButton.setAlpha(1f);
+
+                                    joinFlatButton.setEnabled(true);
+                                    joinFlatButton.setAlpha(1f);
+                                    joinCodeInput.setEnabled(true);
+
+                                    flatNameInput.setText("");
+                                    joinCodeInput.setText("");
+
+                                    Toast.makeText(requireContext(),
+                                            "You left the household",
+                                            Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(requireContext(),
+                                                "Failed to leave household",
+                                                Toast.LENGTH_SHORT).show());
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
 
         return v;
