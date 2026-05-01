@@ -172,20 +172,40 @@ public class ChoresFragment extends Fragment implements ChoreAdapter.ChoreAction
 
         if (btnMy != null && btnAll != null) {
 
+            // Default state
             btnMy.setAlpha(1f);
-            btnAll.setAlpha(0.5f);
+            btnMy.setElevation(8f);
+            btnMy.setTypeface(null, android.graphics.Typeface.BOLD);
+
+            btnAll.setAlpha(0.7f);
+            btnAll.setElevation(0f);
+            btnAll.setTypeface(null, android.graphics.Typeface.NORMAL);
 
             btnMy.setOnClickListener(v -> {
                 showOnlyMine = true;
+
                 btnMy.setAlpha(1f);
-                btnAll.setAlpha(0.5f);
+                btnMy.setElevation(8f);
+                btnMy.setTypeface(null, android.graphics.Typeface.BOLD);
+
+                btnAll.setAlpha(0.7f);
+                btnAll.setElevation(0f);
+                btnAll.setTypeface(null, android.graphics.Typeface.NORMAL);
+
                 filterChores();
             });
 
             btnAll.setOnClickListener(v -> {
                 showOnlyMine = false;
+
                 btnAll.setAlpha(1f);
-                btnMy.setAlpha(0.5f);
+                btnAll.setElevation(8f);
+                btnAll.setTypeface(null, android.graphics.Typeface.BOLD);
+
+                btnMy.setAlpha(0.7f);
+                btnMy.setElevation(0f);
+                btnMy.setTypeface(null, android.graphics.Typeface.NORMAL);
+
                 filterChores();
             });
         }
