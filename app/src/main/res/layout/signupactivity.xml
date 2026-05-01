@@ -59,6 +59,47 @@
             android:inputType="textPassword"
             android:padding="12dp" />
 
+        <!-- Password Rules -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/ruleLength"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• At least 6 characters"
+                android:textColor="#F44336"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/ruleUpper"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• One uppercase letter"
+                android:textColor="#F44336"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/ruleNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• One number"
+                android:textColor="#F44336"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/ruleSpecial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• One special character"
+                android:textColor="#F44336"
+                android:textSize="12sp"/>
+
+        </LinearLayout>
+
         <!-- Confirm Password -->
         <EditText
             android:id="@+id/signupConfirmPasswordInput"

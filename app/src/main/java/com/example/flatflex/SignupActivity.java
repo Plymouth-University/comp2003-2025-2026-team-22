@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.text.Editable;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -15,11 +17,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 
-/**
- * Signup screen using Firebase Authentication (Email/Password).
- * Also stores the user's name in Firebase Auth as displayName.
- * Layout: res/layout/signupactivity.xml
- */
 public class SignupActivity extends AppCompatActivity {
 
     private static final String PREFS = "flatflex_prefs";
@@ -30,6 +27,12 @@ public class SignupActivity extends AppCompatActivity {
     private EditText emailInput;
     private EditText passwordInput;
     private EditText confirmPasswordInput;
+
+    // Password rule indicators
+    private TextView ruleLength;
+    private TextView ruleUpper;
+    private TextView ruleNumber;
+    private TextView ruleSpecial;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +46,25 @@ public class SignupActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.signupPasswordInput);
         confirmPasswordInput = findViewById(R.id.signupConfirmPasswordInput);
 
+        // Link rule TextViews
+        ruleLength = findViewById(R.id.ruleLength);
+        ruleUpper = findViewById(R.id.ruleUpper);
+        ruleNumber = findViewById(R.id.ruleNumber);
+        ruleSpecial = findViewById(R.id.ruleSpecial);
+
         Button createAccountButton = findViewById(R.id.createAccountButton);
         TextView backToLogin = findViewById(R.id.backToLogin);
+
+        // Live password validation
+        passwordInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                updatePasswordRules(s.toString());
+            }
+
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        });
 
         createAccountButton.setOnClickListener(v -> {
             String name = nameInput.getText().toString().trim();
@@ -70,8 +90,9 @@ public class SignupActivity extends AppCompatActivity {
                 return;
             }
 
-            if (password.length() < 6) {
-                passwordInput.setError("Password must be at least 6 characters");
+            // Use proper validation
+            if (!isValidPassword(password)) {
+                passwordInput.setError("Password must meet all requirements below");
                 passwordInput.requestFocus();
                 return;
             }
@@ -95,7 +116,6 @@ public class SignupActivity extends AppCompatActivity {
                         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
                         prefs.edit().putLong(KEY_LAST_LOGIN_MS, System.currentTimeMillis()).apply();
 
-                        // Account created and signed in
                         Intent intent = new Intent(SignupActivity.this, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
@@ -103,7 +123,7 @@ public class SignupActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> Toast.makeText(
                             SignupActivity.this,
-                            "Signup failed: " + e.getMessage(),
+                            "Signup failed. Please check your details.",
                             Toast.LENGTH_LONG
                     ).show());
         });
@@ -114,10 +134,53 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
+    // Password rule UI updates
+    private void updatePasswordRules(String password) {
+
+        if (password.length() >= 8) {
+            ruleLength.setText("✔ At least 8 characters");
+            ruleLength.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            ruleLength.setText("✖ At least 8 characters");
+            ruleLength.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
+
+        if (password.matches(".*[A-Z].*")) {
+            ruleUpper.setText("✔ One uppercase letter");
+            ruleUpper.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            ruleUpper.setText("✖ One uppercase letter");
+            ruleUpper.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
+
+        if (password.matches(".*\\d.*")) {
+            ruleNumber.setText("✔ One number");
+            ruleNumber.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            ruleNumber.setText("✖ One number");
+            ruleNumber.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
+
+        if (password.matches(".*[@#$%^&+=!].*")) {
+            ruleSpecial.setText("✔ One special character");
+            ruleSpecial.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            ruleSpecial.setText("✖ One special character");
+            ruleSpecial.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
+    }
+
+    // ✅ NEW: validation function
+    private boolean isValidPassword(String password) {
+        return password.length() >= 8 &&
+                password.matches(".*[A-Z].*") &&
+                password.matches(".*\\d.*") &&
+                password.matches(".*[@#$%^&+=!].*");
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
-        // If user is already logged in, skip signup
         if (auth != null && auth.getCurrentUser() != null) {
             Intent intent = new Intent(SignupActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
