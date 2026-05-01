@@ -101,12 +101,92 @@ public class SettingsFragment extends Fragment {
 
         // Prefill name from Firebase
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        if (user == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return v;
+        }
+
         String userId = user.getUid();
-        if (user != null) {
-            if (!TextUtils.isEmpty(user.getDisplayName())) {
-                nameInput.setText(user.getDisplayName());
-            }
+        if (!TextUtils.isEmpty(user.getDisplayName())) {
+            nameInput.setText(user.getDisplayName());
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Change password
+        Button changePasswordButton = v.findViewById(R.id.changePasswordButton);
+        if (changePasswordButton != null) {
+            changePasswordButton.setOnClickListener(v1 -> sendPasswordReset());
+        }
+
+        // Reset email
+        Button changeEmailButton = v.findViewById(R.id.changeEmailButton);
+        if (changeEmailButton != null) {
+            changeEmailButton.setOnClickListener(v1 -> showChangeEmailDialog());
+        }
+
+        // Logout
+        Button logoutButton = v.findViewById(R.id.logoutButton);
+        if (logoutButton != null) {
+            logoutButton.setOnClickListener(v1 -> {
+                FirebaseAuth.getInstance().signOut();
+
+                Intent intent = new Intent(requireContext(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+
+                requireActivity().finish();
+            });
+        }
+
+        // Delete account
+        Button deleteAccountButton = v.findViewById(R.id.deleteAccountButton);
+        if (deleteAccountButton != null) {deleteAccountButton.setOnClickListener(v1 -> showDeleteAccountDialog());
+        }
+
+        // Apply themes
+        Button applyThemeButton = v.findViewById(R.id.applyThemeButton);
+        Spinner themeSpinner = v.findViewById(R.id.themeSpinner);
+
+        if (applyThemeButton != null && themeSpinner != null) {
+            applyThemeButton.setOnClickListener(v1 -> {
+                String selected = themeSpinner.getSelectedItem().toString().toLowerCase();
+                applyTheme(selected);
+            });
+        }
+
+        // Notifications
+        SwitchMaterial notificationsSwitch = v.findViewById(R.id.notificationsSwitch);
+
+        if (notificationsSwitch != null) {
+            notificationsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean(KEY_NOTIFS_ENABLED, isChecked).apply();
+                updateReminderWorker();
+            });
+        }
+
+        // FAQs
+        Button faqButton = v.findViewById(R.id.faqButton);
+
+        if (faqButton != null) {
+            faqButton.setOnClickListener(v1 ->
+                    openLink("https://your-faq-link.com"));
+        }
+
+        // Report a problem
+        Button reportProblemButton = v.findViewById(R.id.reportProblemButton);
+
+        if (reportProblemButton != null) {
+            reportProblemButton.setOnClickListener(v1 -> {
+
+                Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+                emailIntent.setData(Uri.parse("mailto:support@yourapp.com"));
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "FlatFlex Support");
+                emailIntent.putExtra(Intent.EXTRA_TEXT, buildSupportBody());
+
+                startActivity(emailIntent);
+            });
         }
 
         // --- Profile ---
@@ -379,52 +459,54 @@ public class SettingsFragment extends Fragment {
         });
 
         // View household members
-        viewMembersButton.setOnClickListener(view -> {
+        if (viewMembersButton != null) {
+            viewMembersButton.setOnClickListener(view -> {
 
-            db.collection("users")
-                    .document(userId)
-                    .get()
-                    .addOnSuccessListener(userDoc -> {
+                db.collection("users")
+                        .document(userId)
+                        .get()
+                        .addOnSuccessListener(userDoc -> {
 
-                        String flatId = userDoc.getString("flatId");
+                            String flatId = userDoc.getString("flatId");
 
-                        if (flatId == null) {
-                            Toast.makeText(requireContext(),
-                                    "You are not in a household",
-                                    Toast.LENGTH_SHORT).show();
-                            return;
-                        }
+                            if (flatId == null) {
+                                Toast.makeText(requireContext(),
+                                        "You are not in a household",
+                                        Toast.LENGTH_SHORT).show();
+                                return;
+                            }
 
-                        db.collection("users")
-                                .whereEqualTo("flatId", flatId)
-                                .get()
-                                .addOnSuccessListener(querySnapshot -> {
+                            db.collection("users")
+                                    .whereEqualTo("flatId", flatId)
+                                    .get()
+                                    .addOnSuccessListener(querySnapshot -> {
 
-                                    if (querySnapshot.isEmpty()) {
-                                        Toast.makeText(requireContext(),
-                                                "No members found",
-                                                Toast.LENGTH_SHORT).show();
-                                        return;
-                                    }
+                                        if (querySnapshot.isEmpty()) {
+                                            Toast.makeText(requireContext(),
+                                                    "No members found",
+                                                    Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
 
-                                    StringBuilder members = new StringBuilder();
+                                        StringBuilder members = new StringBuilder();
 
-                                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                                        String name = doc.getString("name");
+                                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                                            String name = doc.getString("name");
 
-                                        if (name == null) name = "Unnamed user";
+                                            if (name == null) name = "Unnamed user";
 
-                                        members.append("• ").append(name).append("\n");
-                                    }
+                                            members.append("• ").append(name).append("\n");
+                                        }
 
-                                    new AlertDialog.Builder(requireContext())
-                                            .setTitle("Household Members")
-                                            .setMessage(members.toString())
-                                            .setPositiveButton("OK", null)
-                                            .show();
-                                });
-                    });
-        });
+                                        new AlertDialog.Builder(requireContext())
+                                                .setTitle("Household Members")
+                                                .setMessage(members.toString())
+                                                .setPositiveButton("OK", null)
+                                                .show();
+                                    });
+                        });
+            });
+        }
 
         return v;
     }
@@ -470,14 +552,30 @@ public class SettingsFragment extends Fragment {
 
     private void sendPasswordReset() {
         FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
+
         if (u == null || TextUtils.isEmpty(u.getEmail())) {
-            Toast.makeText(requireContext(), "No email found for this account.", Toast.LENGTH_LONG).show();
+            Toast.makeText(requireContext(),
+                    "We couldn't find your account email. Please log in again.",
+                    Toast.LENGTH_LONG).show();
             return;
         }
 
         FirebaseAuth.getInstance().sendPasswordResetEmail(u.getEmail())
-                .addOnSuccessListener(unused -> Toast.makeText(requireContext(), "Password reset email sent", Toast.LENGTH_LONG).show())
-                .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnSuccessListener(unused ->
+                        Toast.makeText(requireContext(),
+                                "Password reset email sent. Check your inbox.",
+                                Toast.LENGTH_LONG).show())
+                .addOnFailureListener(e -> {
+                    String message;
+
+                    if (e.getMessage() != null && e.getMessage().contains("network")) {
+                        message = "Network error. Please check your connection and try again.";
+                    } else {
+                        message = "Something went wrong. Please try again.";
+                    }
+
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+                });
     }
 
     private void showChangeEmailDialog() {
