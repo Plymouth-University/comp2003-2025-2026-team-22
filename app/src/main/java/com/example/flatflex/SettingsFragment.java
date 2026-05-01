@@ -106,6 +106,14 @@ public class SettingsFragment extends Fragment {
         saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
         saveFlatButton.setOnClickListener(view -> {
             String flatName = flatNameInput.getText().toString().trim();
+
+            if (flatName.isEmpty()) {
+                flatNameInput.setError("Enter a household name");
+                flatNameInput.requestFocus();
+                return;
+            }
+
+            flatNameInput.clearFocus();
             Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
         });
 
@@ -137,6 +145,11 @@ public class SettingsFragment extends Fragment {
                                         generateJoinCodeButton.setEnabled(false);
                                         generateJoinCodeButton.setText("Already in a household");
                                         generateJoinCodeButton.setAlpha(0.5f);
+
+                                        // UX improvements
+                                        joinFlatButton.setEnabled(false);
+                                        joinFlatButton.setAlpha(0.5f);
+                                        joinCodeInput.setEnabled(false);
                                     }
 
                                 });
@@ -147,6 +160,11 @@ public class SettingsFragment extends Fragment {
                         generateJoinCodeButton.setEnabled(true);
                         generateJoinCodeButton.setAlpha(1f);
                         generateJoinCodeButton.setText("Generate");
+
+                        // UX reset
+                        joinFlatButton.setEnabled(true);
+                        joinFlatButton.setAlpha(1f);
+                        joinCodeInput.setEnabled(true);
                     }
 
                 });
@@ -157,7 +175,8 @@ public class SettingsFragment extends Fragment {
             String flatName = flatNameInput.getText().toString().trim();
 
             if (flatName.isEmpty()) {
-                Toast.makeText(requireContext(), "Enter a flat name", Toast.LENGTH_SHORT).show();
+                flatNameInput.setError("Enter a household name first");
+                flatNameInput.requestFocus();
                 return;
             }
 
@@ -202,7 +221,7 @@ public class SettingsFragment extends Fragment {
 
                         // Otherwise, create new flat
                         String code = generateJoinCode();
-                        joinCodeText.setText(code);
+                        joinCodeText.setText("Code: " + code);
 
                         Map<String, Object> flat = new HashMap<>();
                         flat.put("name", flatName);
@@ -218,6 +237,18 @@ public class SettingsFragment extends Fragment {
                                     db.collection("users")
                                             .document(userId)
                                             .set(Collections.singletonMap("flatId", flatId), SetOptions.merge());
+
+                                    // UX improvements
+                                    flatNameInput.setText("");
+                                    flatNameInput.clearFocus();
+
+                                    generateJoinCodeButton.setEnabled(false);
+                                    generateJoinCodeButton.setText("Already in a household");
+                                    generateJoinCodeButton.setAlpha(0.5f);
+
+                                    joinFlatButton.setEnabled(false);
+                                    joinFlatButton.setAlpha(0.5f);
+                                    joinCodeInput.setEnabled(false);
 
                                     Toast.makeText(requireContext(), "Household created!", Toast.LENGTH_SHORT).show();
                                 });
@@ -245,7 +276,8 @@ public class SettingsFragment extends Fragment {
             String code = joinCodeInput.getText().toString().trim();
 
             if (code.isEmpty()) {
-                Toast.makeText(requireContext(), "Enter a join code", Toast.LENGTH_SHORT).show();
+                joinCodeInput.setError("Enter a join code");
+                joinCodeInput.requestFocus();
                 return;
             }
 
@@ -269,13 +301,21 @@ public class SettingsFragment extends Fragment {
                                 .set(Collections.singletonMap("flatId", flatId), SetOptions.merge())
                                 .addOnSuccessListener(unused -> {
 
-                                    Toast.makeText(requireContext(), "Joined household!", Toast.LENGTH_SHORT).show();
+                                    // UX improvements
+                                    joinCodeInput.setText("");
+                                    joinCodeInput.clearFocus();
 
-                                    // Update UI immediately
-                                    joinCodeText.setText(code);
+                                    joinCodeText.setText("Code: " + code);
+
                                     generateJoinCodeButton.setEnabled(false);
                                     generateJoinCodeButton.setText("Already in a household");
                                     generateJoinCodeButton.setAlpha(0.5f);
+
+                                    joinFlatButton.setEnabled(false);
+                                    joinFlatButton.setAlpha(0.5f);
+                                    joinCodeInput.setEnabled(false);
+
+                                    Toast.makeText(requireContext(), "Joined household!", Toast.LENGTH_SHORT).show();
                                 });
 
                     })
@@ -284,150 +324,6 @@ public class SettingsFragment extends Fragment {
                     });
 
         });
-
-        // --- Account ---
-        Button changePasswordButton = v.findViewById(R.id.changePasswordButton);
-        Button changeEmailButton = v.findViewById(R.id.changeEmailButton);
-
-        changePasswordButton.setOnClickListener(view -> sendPasswordReset());
-        changeEmailButton.setOnClickListener(view -> showChangeEmailDialog());
-
-        // --- Preferences ---
-        Spinner themeSpinner = v.findViewById(R.id.themeSpinner);
-        ArrayAdapter<String> themeAdapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                new String[]{"System", "Light", "Dark"}
-        );
-        themeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        themeSpinner.setAdapter(themeAdapter);
-
-        String currentTheme = prefs.getString(KEY_THEME_MODE, "system");
-        themeSpinner.setSelection("light".equals(currentTheme) ? 1 : "dark".equals(currentTheme) ? 2 : 0);
-
-        Button applyThemeButton = v.findViewById(R.id.applyThemeButton);
-        applyThemeButton.setOnClickListener(view -> {
-            int pos = themeSpinner.getSelectedItemPosition();
-            String mode = (pos == 1) ? "light" : (pos == 2) ? "dark" : "system";
-            prefs.edit().putString(KEY_THEME_MODE, mode).apply();
-            applyTheme(mode);
-            Toast.makeText(requireContext(), "Theme updated", Toast.LENGTH_SHORT).show();
-        });
-
-        SwitchMaterial notifSwitch = v.findViewById(R.id.notificationsSwitch);
-        Button notifTimeButton = v.findViewById(R.id.notificationTimeButton);
-
-        notifSwitch.setChecked(prefs.getBoolean(KEY_NOTIFS_ENABLED, false));
-        notifTimeButton.setText(formatTime(prefs.getInt(KEY_NOTIF_HOUR, 19), prefs.getInt(KEY_NOTIF_MIN, 0)));
-
-        notifSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean(KEY_NOTIFS_ENABLED, isChecked).apply();
-            updateReminderWorker();
-        });
-
-        notifTimeButton.setOnClickListener(view -> {
-            int hour = prefs.getInt(KEY_NOTIF_HOUR, 19);
-            int min = prefs.getInt(KEY_NOTIF_MIN, 0);
-
-            TimePickerDialog dialog = new TimePickerDialog(requireContext(), (timePicker, h, m) -> {
-                prefs.edit().putInt(KEY_NOTIF_HOUR, h).putInt(KEY_NOTIF_MIN, m).apply();
-                notifTimeButton.setText(formatTime(h, m));
-                updateReminderWorker();
-            }, hour, min, true);
-
-            dialog.show();
-        });
-
-        SwitchMaterial biometricSwitch = v.findViewById(R.id.biometricSwitch);
-        biometricSwitch.setChecked(prefs.getBoolean(KEY_BIOMETRIC_ENABLED, false));
-        biometricSwitch.setOnCheckedChangeListener((buttonView, enabled) -> {
-            if (enabled) {
-                BiometricManager bm = BiometricManager.from(requireContext());
-                int canAuth = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG
-                        | BiometricManager.Authenticators.BIOMETRIC_WEAK);
-                if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
-                    biometricSwitch.setChecked(false);
-                    Toast.makeText(requireContext(), "Biometrics not available on this device", Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-            prefs.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply();
-        });
-
-        Spinner reloginSpinner = v.findViewById(R.id.reloginSpinner);
-        ArrayAdapter<String> reloginAdapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                new String[]{"Never", "1 day", "7 days", "30 days"}
-        );
-        reloginAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        reloginSpinner.setAdapter(reloginAdapter);
-
-        int currentDays = prefs.getInt(KEY_RELOGIN_DAYS, 0);
-        int sel = currentDays == 1 ? 1 : currentDays == 7 ? 2 : currentDays == 30 ? 3 : 0;
-        reloginSpinner.setSelection(sel);
-
-        Button applyReloginButton = v.findViewById(R.id.applyReloginButton);
-        applyReloginButton.setOnClickListener(view -> {
-            int p = reloginSpinner.getSelectedItemPosition();
-            int days = (p == 1) ? 1 : (p == 2) ? 7 : (p == 3) ? 30 : 0;
-            prefs.edit().putInt(KEY_RELOGIN_DAYS, days).apply();
-            Toast.makeText(requireContext(), "Security setting saved", Toast.LENGTH_SHORT).show();
-        });
-
-        // --- Support ---
-        Button faqButton = v.findViewById(R.id.faqButton);
-        Button reportProblemButton = v.findViewById(R.id.reportProblemButton);
-        Button termsButton = v.findViewById(R.id.termsButton);
-        Button privacyButton = v.findViewById(R.id.privacyButton);
-        Button aboutButton = v.findViewById(R.id.aboutButton);
-
-        faqButton.setOnClickListener(view -> startActivity(new Intent(requireContext(), FaqActivity.class)));
-
-        reportProblemButton.setOnClickListener(view -> {
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.parse("mailto:"));
-            intent.putExtra(Intent.EXTRA_SUBJECT, "FlatFlex Support");
-            intent.putExtra(Intent.EXTRA_TEXT, buildSupportBody());
-            startActivity(Intent.createChooser(intent, "Send email"));
-        });
-
-        termsButton.setOnClickListener(view -> openLink("https://example.com/terms"));
-        privacyButton.setOnClickListener(view -> openLink("https://example.com/privacy"));
-        aboutButton.setOnClickListener(view -> startActivity(new Intent(requireContext(), AboutActivity.class)));
-
-        // --- Data controls ---
-        Button exportButton = v.findViewById(R.id.exportButton);
-        Button clearCompletedButton = v.findViewById(R.id.clearCompletedButton);
-        Button resetHintsButton = v.findViewById(R.id.resetHintsButton);
-
-        exportButton.setOnClickListener(view -> SettingsExportHelper.exportSettings(requireContext()));
-        clearCompletedButton.setOnClickListener(view -> {
-            // If/when chores are stored, hook this up. For now we clear a placeholder preference bucket.
-            prefs.edit().remove("completed_chores").apply();
-            Toast.makeText(requireContext(), "Completed chores cleared", Toast.LENGTH_SHORT).show();
-        });
-        resetHintsButton.setOnClickListener(view -> {
-            prefs.edit().putBoolean(KEY_TUTORIAL_SEEN, false).apply();
-            Toast.makeText(requireContext(), "Hints reset", Toast.LENGTH_SHORT).show();
-        });
-
-        // --- Danger zone ---
-        Button logoutButton = v.findViewById(R.id.logoutButton);
-        Button deleteAccountButton = v.findViewById(R.id.deleteAccountButton);
-
-        logoutButton.setOnClickListener(view -> {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(requireContext(), LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            requireActivity().finish();
-        });
-
-        deleteAccountButton.setOnClickListener(view -> showDeleteAccountDialog());
-
-        // Ensure reminder state matches current prefs
-        updateReminderWorker();
 
         return v;
     }

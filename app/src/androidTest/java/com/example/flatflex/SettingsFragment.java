@@ -30,7 +30,7 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
         nameInput = view.findViewById(R.id.nameInput);
-        Button saveButton = view.findViewById(R.id.saveButton);
+        Button saveButton = view.findViewById(R.id.saveProfileButton);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null && user.getDisplayName() != null) {
