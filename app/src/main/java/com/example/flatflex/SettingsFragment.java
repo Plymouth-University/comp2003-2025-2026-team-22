@@ -189,6 +189,35 @@ public class SettingsFragment extends Fragment {
             });
         }
 
+        // Password reset
+        Button changePasswordButton = v.findViewById(R.id.changePasswordButton);
+        if (changePasswordButton != null) {
+            changePasswordButton.setOnClickListener(v1 -> sendPasswordReset());
+        }
+
+        // Change email
+        Button changeEmailButton = v.findViewById(R.id.changeEmailButton);
+        if (changeEmailButton != null) {
+            changeEmailButton.setOnClickListener(v1 -> showChangeEmailDialog());
+        }
+
+        // Delete account
+        Button deleteAccountButton = v.findViewById(R.id.deleteAccountButton);
+        if (deleteAccountButton != null) {
+            deleteAccountButton.setOnClickListener(v1 -> showDeleteAccountDialog());
+        }
+
+        // Notification toggle
+        SwitchMaterial notifSwitch = v.findViewById(R.id.notificationsSwitch);
+
+        if (notifSwitch != null) {
+            notifSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean(KEY_NOTIFS_ENABLED, isChecked).apply();
+                updateReminderWorker();
+            });
+        }
+
+
         // --- Profile ---
         saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
         saveFlatButton.setOnClickListener(view -> {
