@@ -1,6 +1,5 @@
 package com.example.flatflex;
 
-import android.app.TimePickerDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -13,7 +12,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -24,7 +22,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.biometric.BiometricManager;
 import androidx.fragment.app.Fragment;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
@@ -41,15 +38,15 @@ import com.google.firebase.firestore.SetOptions;
 
 import java.security.SecureRandom;
 import java.util.Collections;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class SettingsFragment extends Fragment {
 
     private static final String PREFS = "flatflex_prefs";
-    private static final String KEY_THEME_MODE = "theme_mode"; // system|light|dark
+    private static final String KEY_THEME_MODE = "theme_mode";
     private static final String KEY_NOTIFS_ENABLED = "notifs_enabled";
     private static final String KEY_NOTIF_HOUR = "notif_hour";
     private static final String KEY_NOTIF_MIN = "notif_min";
@@ -73,60 +70,54 @@ public class SettingsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_settings, container, false);
         prefs = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
-        // Profile
         EditText nameInput = v.findViewById(R.id.nameInput);
         Button saveProfileButton = v.findViewById(R.id.saveProfileButton);
 
-        // Flat name
         EditText flatNameInput = v.findViewById(R.id.flatNameInput);
         Button saveFlatButton = v.findViewById(R.id.saveFlatButton);
 
-        // Join code
         TextView joinCodeText = v.findViewById(R.id.joinCodeText);
         Button generateJoinCodeButton = v.findViewById(R.id.generateJoinCodeButton);
         Button copyJoinCodeButton = v.findViewById(R.id.copyJoinCodeButton);
 
-        // Join household by code
         EditText joinCodeInput = v.findViewById(R.id.joinCodeInput);
         Button joinFlatButton = v.findViewById(R.id.joinFlatButton);
 
-        // Leave household
         Button leaveFlatButton = v.findViewById(R.id.leaveFlatButton);
-
-        // View household members
         Button viewMembersButton = v.findViewById(R.id.viewMembersButton);
 
-        // Prefill flat settings
         flatNameInput.setText(prefs.getString(KEY_FLAT_NAME, ""));
 
-        // Prefill name from Firebase
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         if (user == null) {
-            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please log in again.", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent(requireContext(), LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            requireActivity().finish();
+
             return v;
         }
 
         String userId = user.getUid();
+
         if (!TextUtils.isEmpty(user.getDisplayName())) {
             nameInput.setText(user.getDisplayName());
         }
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // Change password
         Button changePasswordButton = v.findViewById(R.id.changePasswordButton);
         if (changePasswordButton != null) {
             changePasswordButton.setOnClickListener(v1 -> sendPasswordReset());
         }
 
-        // Reset email
         Button changeEmailButton = v.findViewById(R.id.changeEmailButton);
         if (changeEmailButton != null) {
             changeEmailButton.setOnClickListener(v1 -> showChangeEmailDialog());
         }
 
-        // Logout
         Button logoutButton = v.findViewById(R.id.logoutButton);
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v1 -> {
@@ -140,12 +131,11 @@ public class SettingsFragment extends Fragment {
             });
         }
 
-        // Delete account
         Button deleteAccountButton = v.findViewById(R.id.deleteAccountButton);
-        if (deleteAccountButton != null) {deleteAccountButton.setOnClickListener(v1 -> showDeleteAccountDialog());
+        if (deleteAccountButton != null) {
+            deleteAccountButton.setOnClickListener(v1 -> showDeleteAccountDialog());
         }
 
-        // Apply themes
         Button applyThemeButton = v.findViewById(R.id.applyThemeButton);
         Spinner themeSpinner = v.findViewById(R.id.themeSpinner);
 
@@ -156,9 +146,7 @@ public class SettingsFragment extends Fragment {
             });
         }
 
-        // Notifications
         SwitchMaterial notificationsSwitch = v.findViewById(R.id.notificationsSwitch);
-
         if (notificationsSwitch != null) {
             notificationsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 prefs.edit().putBoolean(KEY_NOTIFS_ENABLED, isChecked).apply();
@@ -166,74 +154,41 @@ public class SettingsFragment extends Fragment {
             });
         }
 
-        // FAQs
         Button faqButton = v.findViewById(R.id.faqButton);
-
         if (faqButton != null) {
-            faqButton.setOnClickListener(v1 ->
-                    openLink("https://your-faq-link.com"));
+            faqButton.setOnClickListener(v1 -> openLink("https://your-faq-link.com"));
         }
 
-        // Report a problem
         Button reportProblemButton = v.findViewById(R.id.reportProblemButton);
-
         if (reportProblemButton != null) {
             reportProblemButton.setOnClickListener(v1 -> {
-
                 Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
                 emailIntent.setData(Uri.parse("mailto:support@yourapp.com"));
                 emailIntent.putExtra(Intent.EXTRA_SUBJECT, "FlatFlex Support");
                 emailIntent.putExtra(Intent.EXTRA_TEXT, buildSupportBody());
-
                 startActivity(emailIntent);
             });
         }
 
-        // Password reset
-        Button changePasswordButton = v.findViewById(R.id.changePasswordButton);
-        if (changePasswordButton != null) {
-            changePasswordButton.setOnClickListener(v1 -> sendPasswordReset());
+        if (saveProfileButton != null) {
+            saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
         }
 
-        // Change email
-        Button changeEmailButton = v.findViewById(R.id.changeEmailButton);
-        if (changeEmailButton != null) {
-            changeEmailButton.setOnClickListener(v1 -> showChangeEmailDialog());
-        }
+        if (saveFlatButton != null) {
+            saveFlatButton.setOnClickListener(view -> {
+                String flatName = flatNameInput.getText().toString().trim();
 
-        // Delete account
-        Button deleteAccountButton = v.findViewById(R.id.deleteAccountButton);
-        if (deleteAccountButton != null) {
-            deleteAccountButton.setOnClickListener(v1 -> showDeleteAccountDialog());
-        }
+                if (flatName.isEmpty()) {
+                    flatNameInput.setError("Enter a household name");
+                    flatNameInput.requestFocus();
+                    return;
+                }
 
-        // Notification toggle
-        SwitchMaterial notifSwitch = v.findViewById(R.id.notificationsSwitch);
-
-        if (notifSwitch != null) {
-            notifSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                prefs.edit().putBoolean(KEY_NOTIFS_ENABLED, isChecked).apply();
-                updateReminderWorker();
+                flatNameInput.clearFocus();
+                Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
             });
         }
 
-
-        // --- Profile ---
-        saveProfileButton.setOnClickListener(view -> updateDisplayName(nameInput));
-        saveFlatButton.setOnClickListener(view -> {
-            String flatName = flatNameInput.getText().toString().trim();
-
-            if (flatName.isEmpty()) {
-                flatNameInput.setError("Enter a household name");
-                flatNameInput.requestFocus();
-                return;
-            }
-
-            flatNameInput.clearFocus();
-            Toast.makeText(requireContext(), "Flat name saved", Toast.LENGTH_SHORT).show();
-        });
-
-        // Load existing household on page open
         db.collection("users")
                 .document(userId)
                 .get()
@@ -252,46 +207,36 @@ public class SettingsFragment extends Fragment {
 
                                         String joinCode = flatDoc.getString("joinCode");
 
-                                        // Show join code
                                         if (joinCode != null) {
                                             joinCodeText.setText(joinCode);
                                         }
 
-                                        // Disable button
                                         generateJoinCodeButton.setEnabled(false);
                                         generateJoinCodeButton.setText("Already in a household");
                                         generateJoinCodeButton.setAlpha(0.5f);
 
-                                        // UX improvements
                                         joinFlatButton.setEnabled(false);
                                         joinFlatButton.setAlpha(0.5f);
                                         joinCodeInput.setEnabled(false);
 
-                                        // Show household members button
                                         viewMembersButton.setVisibility(View.VISIBLE);
                                     }
-
                                 });
 
                     } else {
-                        // Reset UI if no flat
                         joinCodeText.setText("Not set");
                         generateJoinCodeButton.setEnabled(true);
                         generateJoinCodeButton.setAlpha(1f);
                         generateJoinCodeButton.setText("Generate");
 
-                        // UX reset
                         joinFlatButton.setEnabled(true);
                         joinFlatButton.setAlpha(1f);
                         joinCodeInput.setEnabled(true);
 
-                        // Hide show household members button
                         viewMembersButton.setVisibility(View.GONE);
                     }
-
                 });
 
-        // --- Join Code ---
         generateJoinCodeButton.setOnClickListener(view -> {
 
             String flatName = flatNameInput.getText().toString().trim();
@@ -302,7 +247,6 @@ public class SettingsFragment extends Fragment {
                 return;
             }
 
-            // First check if user already has a flat
             db.collection("users")
                     .document(userId)
                     .get()
@@ -310,10 +254,8 @@ public class SettingsFragment extends Fragment {
 
                         String existingFlatId = userDoc.getString("flatId");
 
-                        // Stop if already in a flat
                         if (existingFlatId != null) {
 
-                            // Fetch existing flat to show join code
                             db.collection("flats")
                                     .document(existingFlatId)
                                     .get()
@@ -323,25 +265,21 @@ public class SettingsFragment extends Fragment {
 
                                             String joinCode = flatDoc.getString("joinCode");
 
-                                            // Show join code
                                             if (joinCode != null) {
                                                 joinCodeText.setText(joinCode);
                                             }
 
-                                            // Disable button
                                             generateJoinCodeButton.setEnabled(false);
                                             generateJoinCodeButton.setText("Already in a household");
                                             generateJoinCodeButton.setAlpha(0.5f);
 
                                             Toast.makeText(requireContext(), "You already have a household", Toast.LENGTH_SHORT).show();
                                         }
-
                                     });
 
                             return;
                         }
 
-                        // Otherwise, create new flat
                         String code = generateJoinCode();
                         joinCodeText.setText("Code: " + code);
 
@@ -355,12 +293,10 @@ public class SettingsFragment extends Fragment {
 
                                     String flatId = doc.getId();
 
-                                    // link user to flat
                                     db.collection("users")
                                             .document(userId)
                                             .set(Collections.singletonMap("flatId", flatId), SetOptions.merge());
 
-                                    // UX improvements
                                     flatNameInput.setText("");
                                     flatNameInput.clearFocus();
 
@@ -372,13 +308,13 @@ public class SettingsFragment extends Fragment {
                                     joinFlatButton.setAlpha(0.5f);
                                     joinCodeInput.setEnabled(false);
 
+                                    viewMembersButton.setVisibility(View.VISIBLE);
+
                                     Toast.makeText(requireContext(), "Household created!", Toast.LENGTH_SHORT).show();
                                 });
-
                     });
         });
 
-        // --- Copy Join Code ---
         copyJoinCodeButton.setOnClickListener(view -> {
             String code = joinCodeText.getText().toString();
 
@@ -392,7 +328,6 @@ public class SettingsFragment extends Fragment {
             Toast.makeText(requireContext(), "Copied to clipboard", Toast.LENGTH_SHORT).show();
         });
 
-        // --- Join Flat by Code ---
         joinFlatButton.setOnClickListener(view -> {
 
             String code = joinCodeInput.getText().toString().trim();
@@ -403,7 +338,6 @@ public class SettingsFragment extends Fragment {
                 return;
             }
 
-            // Find flat with this code
             db.collection("flats")
                     .whereEqualTo("joinCode", code)
                     .get()
@@ -414,16 +348,13 @@ public class SettingsFragment extends Fragment {
                             return;
                         }
 
-                        // Get the first matching flat
                         String flatId = querySnapshot.getDocuments().get(0).getId();
 
-                        // Link user to flat
                         db.collection("users")
                                 .document(userId)
                                 .set(Collections.singletonMap("flatId", flatId), SetOptions.merge())
                                 .addOnSuccessListener(unused -> {
 
-                                    // UX improvements
                                     joinCodeInput.setText("");
                                     joinCodeInput.clearFocus();
 
@@ -437,17 +368,16 @@ public class SettingsFragment extends Fragment {
                                     joinFlatButton.setAlpha(0.5f);
                                     joinCodeInput.setEnabled(false);
 
+                                    viewMembersButton.setVisibility(View.VISIBLE);
+
                                     Toast.makeText(requireContext(), "Joined household!", Toast.LENGTH_SHORT).show();
                                 });
-
                     })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-
+                    .addOnFailureListener(e ->
+                            Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                    );
         });
 
-        // Leave household
         leaveFlatButton.setOnClickListener(view -> {
 
             new AlertDialog.Builder(requireContext())
@@ -460,7 +390,6 @@ public class SettingsFragment extends Fragment {
                                 .update("flatId", null)
                                 .addOnSuccessListener(unused -> {
 
-                                    // Reset UI
                                     joinCodeText.setText("Not set");
 
                                     generateJoinCodeButton.setEnabled(true);
@@ -470,6 +399,8 @@ public class SettingsFragment extends Fragment {
                                     joinFlatButton.setEnabled(true);
                                     joinFlatButton.setAlpha(1f);
                                     joinCodeInput.setEnabled(true);
+
+                                    viewMembersButton.setVisibility(View.GONE);
 
                                     flatNameInput.setText("");
                                     joinCodeInput.setText("");
@@ -487,7 +418,6 @@ public class SettingsFragment extends Fragment {
                     .show();
         });
 
-        // View household members
         if (viewMembersButton != null) {
             viewMembersButton.setOnClickListener(view -> {
 
@@ -561,7 +491,6 @@ public class SettingsFragment extends Fragment {
         u.updateProfile(req)
                 .addOnSuccessListener(unused -> {
 
-                    // Save to Firestore
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
                     Map<String, Object> userData = new HashMap<>();
@@ -597,7 +526,7 @@ public class SettingsFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     String message;
 
-                    if (e.getMessage() != null && e.getMessage().contains("network")) {
+                    if (e.getMessage() != null && e.getMessage().toLowerCase().contains("network")) {
                         message = "Network error. Please check your connection and try again.";
                     } else {
                         message = "Something went wrong. Please try again.";
@@ -629,6 +558,7 @@ public class SettingsFragment extends Fragment {
                         Toast.makeText(requireContext(), "Enter a new email", Toast.LENGTH_LONG).show();
                         return;
                     }
+
                     if (TextUtils.isEmpty(currentPassword)) {
                         Toast.makeText(requireContext(), "Enter your current password", Toast.LENGTH_LONG).show();
                         return;
@@ -641,9 +571,15 @@ public class SettingsFragment extends Fragment {
 
                     u.reauthenticate(EmailAuthProvider.getCredential(u.getEmail(), currentPassword))
                             .addOnSuccessListener(unused -> u.updateEmail(newEmail)
-                                    .addOnSuccessListener(unused2 -> Toast.makeText(requireContext(), "Email updated", Toast.LENGTH_SHORT).show())
-                                    .addOnFailureListener(e -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show()))
-                            .addOnFailureListener(e -> Toast.makeText(requireContext(), "Re-auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                                    .addOnSuccessListener(unused2 ->
+                                            Toast.makeText(requireContext(), "Email updated", Toast.LENGTH_SHORT).show()
+                                    )
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show()
+                                    ))
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(), "Re-auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                            );
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -663,14 +599,18 @@ public class SettingsFragment extends Fragment {
                     u.delete()
                             .addOnSuccessListener(unused -> {
                                 FirebaseAuth.getInstance().signOut();
+
                                 Intent intent = new Intent(requireContext(), LoginActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
+
                                 requireActivity().finish();
                             })
-                            .addOnFailureListener(e -> Toast.makeText(requireContext(),
-                                    "Delete failed: " + e.getMessage() + "\nTry changing password then retry.",
-                                    Toast.LENGTH_LONG).show());
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(),
+                                            "Delete failed: " + e.getMessage() + "\nTry changing password then retry.",
+                                            Toast.LENGTH_LONG).show()
+                            );
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -684,18 +624,18 @@ public class SettingsFragment extends Fragment {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
-        // Recreate to apply immediately
+
         requireActivity().recreate();
     }
 
     private void updateReminderWorker() {
         boolean enabled = prefs.getBoolean(KEY_NOTIFS_ENABLED, false);
+
         if (!enabled) {
             WorkManager.getInstance(requireContext()).cancelUniqueWork(ReminderWorker.UNIQUE_NAME);
             return;
         }
 
-        // Run once a day; ReminderWorker checks if it's near the configured time.
         PeriodicWorkRequest req = new PeriodicWorkRequest.Builder(ReminderWorker.class, 24, TimeUnit.HOURS)
                 .build();
 
@@ -711,7 +651,11 @@ public class SettingsFragment extends Fragment {
         final String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         SecureRandom r = new SecureRandom();
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 6; i++) sb.append(chars.charAt(r.nextInt(chars.length())));
+
+        for (int i = 0; i < 6; i++) {
+            sb.append(chars.charAt(r.nextInt(chars.length())));
+        }
+
         return sb.toString();
     }
 
